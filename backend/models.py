@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -39,7 +40,7 @@ class MetricSnapshot(Base):
     memory_percent: Mapped[float] = mapped_column(Float, nullable=False)
     memory_used_gb: Mapped[float] = mapped_column(Float, nullable=False)
     memory_total_gb: Mapped[float] = mapped_column(Float, nullable=False)
-    disk_data: Mapped[list[dict]] = mapped_column(JSON, nullable=False)
+    disk_data: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False)
 
     node: Mapped["Node"] = relationship(back_populates="snapshots")
 
