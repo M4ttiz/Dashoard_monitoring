@@ -3,7 +3,9 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 COPY frontend/package*.json /app/
-RUN npm ci
+COPY frontend/scripts/buildProbe.mjs /app/scripts/buildProbe.mjs
+RUN node /app/scripts/buildProbe.mjs
+RUN npm install
 
 COPY frontend /app
 RUN npm run build
