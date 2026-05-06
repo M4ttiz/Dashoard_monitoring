@@ -13,13 +13,27 @@ function computeUnreadCount(alerts) {
 
 export const useStore = create((set) => ({
   nodes: [],
+  isNodesLoading: true,
   currentMetrics: {},
   alerts: [],
   unreadCount: 0,
 
   fetchNodes: async () => {
-    const { data } = await api.get('/api/nodes')
-    set({ nodes: data || [] })
+    set({ isNodesLoading: true })
+    try {
+      const { data } = await api.get('/api/nodes')
+      set({ nodes: data || [], isNodesLoading: false })
+    } catch {
+      set({ isNodesLoading: false })
+    }
+  },
+
+  addNode: async ({ name, host, port }) => {
+    const { data } = await api.post('/api/nodes', { name, host, port })
+    set((state) => ({
+      nodes: [...state.nodes, data],
+    }))
+    return data
   },
 
   fetchAlerts: async () => {

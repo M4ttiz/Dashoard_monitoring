@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 
 import { useWebSocket } from './hooks/useWebSocket.js'
+import Overview from './pages/Overview.jsx'
 import { useStore } from './store/useStore.js'
 
 function Layout({ title, isConnected, children }) {
@@ -41,7 +42,11 @@ function Layout({ title, isConnected, children }) {
 }
 
 function OverviewPage({ isConnected }) {
-  return <Layout title="MISAT Monitor" isConnected={isConnected}>Dashboard overview route: `/`.</Layout>
+  return (
+    <Layout title="MISAT Monitor" isConnected={isConnected}>
+      <Overview isConnected={isConnected} />
+    </Layout>
+  )
 }
 
 function NodeDetailPage({ isConnected }) {
