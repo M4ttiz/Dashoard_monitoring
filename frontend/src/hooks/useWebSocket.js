@@ -8,6 +8,7 @@ export function useWebSocket(url = BACKEND_WS_URL) {
 
   const [isConnected, setIsConnected] = useState(false)
   const [lastMessage, setLastMessage] = useState(null)
+  const [latencyMs, setLatencyMs] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -36,11 +37,13 @@ export function useWebSocket(url = BACKEND_WS_URL) {
         ws.onmessage = (event) => {
           if (cancelled) return
           const raw = event?.data
+          const t0 = performance.now()
           try {
             setLastMessage(JSON.parse(raw))
           } catch {
             setLastMessage(raw)
           }
+          setLatencyMs(Math.round(performance.now() - t0))
         }
 
         ws.onclose = () => {
@@ -86,6 +89,6 @@ export function useWebSocket(url = BACKEND_WS_URL) {
     }
   }, [url])
 
-  return { lastMessage, isConnected }
+  return { lastMessage, isConnected, latencyMs }
 }
 

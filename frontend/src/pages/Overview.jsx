@@ -1,7 +1,14 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Bar, BarChart, Brush, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { useStore } from '../store/useStore.js'
+import { Badge } from '../components/ui/Badge.jsx'
+import { Card } from '../components/ui/Card.jsx'
+import { EmptyState } from '../components/ui/EmptyState.jsx'
+import { Gauge } from '../components/ui/Gauge.jsx'
+import { Skeleton } from '../components/ui/Skeleton.jsx'
+import { TrendIndicator } from '../components/ui/TrendIndicator.jsx'
+import { useStore } from '../store/useDashboardStore.js'
 
 function metricColorClass(value) {
   if (value > 85) return 'bg-red-500'
@@ -37,13 +44,17 @@ function NodeSkeleton() {
   )
 }
 
+const MemoGauge = memo(Gauge)
+
 export default function Overview({ isConnected }) {
   const navigate = useNavigate()
   const nodes = useStore((s) => s.nodes)
-  const isNodesLoading = useStore((s) => s.isNodesLoading)
-  const currentMetrics = useStore((s) => s.currentMetrics)
+  const currentMetrics = useStore((s) => s.metrics)
   const alerts = useStore((s) => s.alerts)
   const addNode = useStore((s) => s.addNode)
+  const fetchStatus = useStore((s) => s.fetchStatus)
+  const layout = useStore((s) => s.layout)
+  const setLayout = useStore((s) => s.setLayout)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form, setForm] = useState({ name: '', host: '', port: 9646 })
@@ -70,6 +81,37 @@ export default function Overview({ isConnected }) {
 
     return { onlineNodes, cpuAvg, ramAvg, criticalAlerts, warningAlerts }
   }, [alerts, currentMetrics, nodes])
+  const chartData = useMemo(
+    () =>
+      nodes.map((node) => ({
+        name: node.name,
+        cpu: currentMetrics[node.id]?.cpu_percent || 0,
+        ram: currentMetrics[node.id]?.memory_percent || 0,
+      })),
+    [nodes, currentMetrics],
+  )
+  const historicalSeries = useMemo(
+    () =>
+      chartData.map((point, index) => ({
+        t: index,
+        ...point,
+      })),
+    [chartData],
+  )
+  const cards = layout.length
+    ? layout
+    : ['kpi-online', 'kpi-cpu', 'kpi-ram', 'kpi-critical', 'kpi-warning', 'bar', 'line', 'nodes']
+  const [dragged, setDragged] = useState(null)
+
+  const reorderCard = (target) => {
+    if (!dragged || dragged === target) return
+    const next = cards.slice()
+    const from = next.indexOf(dragged)
+    const to = next.indexOf(target)
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    setLayout(next)
+  }
 
   const onSubmit = async (event) => {
     event.preventDefault()
@@ -114,39 +156,75 @@ export default function Overview({ isConnected }) {
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+      <div className="mb-2 text-xs text-slate-400">Drag cards to reorder, bottom-right corner to resize.</div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="resize overflow-auto">
           <p className="text-xs text-slate-400">Nodi online</p>
           <p className="text-2xl font-semibold text-emerald-400">
             {kpis.onlineNodes}/{nodes.length}
           </p>
-        </div>
-        <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+        </Card>
+        <Card className="resize overflow-auto">
           <p className="text-xs text-slate-400">CPU media</p>
           <p className="text-2xl font-semibold text-sky-400">{kpis.cpuAvg.toFixed(1)}%</p>
-        </div>
-        <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+        </Card>
+        <Card className="resize overflow-auto">
           <p className="text-xs text-slate-400">RAM media</p>
           <p className="text-2xl font-semibold text-indigo-400">{kpis.ramAvg.toFixed(1)}%</p>
-        </div>
-        <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+        </Card>
+        <Card className="resize overflow-auto">
           <p className="text-xs text-slate-400">Alert critici</p>
           <p className="text-2xl font-semibold text-red-400">{kpis.criticalAlerts}</p>
-        </div>
-        <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+        </Card>
+        <Card className="resize overflow-auto">
           <p className="text-xs text-slate-400">Alert warning</p>
           <p className="text-2xl font-semibold text-yellow-300">{kpis.warningAlerts}</p>
-        </div>
+        </Card>
+        <Card className="md:col-span-2 resize overflow-auto">
+          <p className="mb-2 text-xs text-slate-400">Comparativa CPU/RAM</p>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="cpu" fill="#38bdf8" />
+                <Bar dataKey="ram" fill="#34d399" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+        <Card className="md:col-span-2 resize overflow-auto">
+          <p className="mb-2 text-xs text-slate-400">Trend Servers</p>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={historicalSeries}>
+                <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+                <XAxis dataKey="t" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="cpu" stroke="#38bdf8" dot={false} />
+                <Line type="monotone" dataKey="ram" stroke="#f97316" dot={false} />
+                <Brush dataKey="t" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
       </div>
 
-      {isNodesLoading ? (
+      {fetchStatus.loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <NodeSkeleton />
-          <NodeSkeleton />
-          <NodeSkeleton />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
         </div>
+      ) : nodes.length === 0 ? (
+        <EmptyState title="Nessun server registrato" message="Aggiungi il primo server per iniziare il monitoraggio." />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" role="list">
           {nodes.map((node) => {
             const metrics = currentMetrics[node.id]
             const cpu = metrics?.cpu_percent ?? 0
@@ -159,19 +237,22 @@ export default function Overview({ isConnected }) {
               <button
                 key={node.id}
                 type="button"
-                onClick={() => navigate(`/nodes/${node.id}`)}
+                draggable
+                onDragStart={() => setDragged(node.id)}
+                onDrop={() => reorderCard(node.id)}
+                onDragOver={(e) => e.preventDefault()}
+                onClick={() => navigate(`/server/${node.id}`)}
                 className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-left transition hover:border-sky-500 hover:bg-slate-700/80"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-medium text-slate-100">{node.name}</h3>
-                  <span className={node.status === 'online' ? 'text-emerald-400 text-xs' : 'text-rose-400 text-xs'}>
-                    {node.status === 'online' ? 'Online' : 'Offline'}
-                  </span>
+                  <Badge status={node.status === 'online' ? 'ok' : 'offline'}>{node.status === 'online' ? 'Online' : 'Offline'}</Badge>
                 </div>
                 <div className="space-y-3">
-                  <ProgressRow label="CPU" value={cpu} />
-                  <ProgressRow label="RAM" value={ram} />
-                  <ProgressRow label="Disk" value={disk} />
+                  <MemoGauge label="CPU" value={cpu} />
+                  <MemoGauge label="RAM" value={ram} />
+                  <MemoGauge label="Disk" value={disk} />
+                  <TrendIndicator delta={cpu - ram} />
                 </div>
               </button>
             )

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import axios from 'axios'
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
+  Brush,
   CartesianGrid,
   Legend,
   Line,
@@ -15,14 +17,12 @@ import {
   YAxis,
 } from 'recharts'
 
-import { BACKEND_HTTP_URL } from '../config/backend.js'
-import { useStore } from '../store/useStore.js'
+import { Card } from '../components/ui/Card.jsx'
+import { EmptyState } from '../components/ui/EmptyState.jsx'
+import { Gauge } from '../components/ui/Gauge.jsx'
+import { useStore } from '../store/useDashboardStore.js'
 
 const RANGE_OPTIONS = ['1h', '6h', '24h', '7d']
-
-const api = axios.create({
-  baseURL: BACKEND_HTTP_URL,
-})
 
 function formatTimeLabel(value) {
   const date = new Date(value)
@@ -47,33 +47,20 @@ export default function NodeDetail() {
   const { id: nodeId } = useParams()
   const nodes = useStore((s) => s.nodes)
   const alerts = useStore((s) => s.alerts)
-  const currentMetrics = useStore((s) => s.currentMetrics)
+  const currentMetrics = useStore((s) => s.metrics)
+  const fetchNodeHistory = useStore((s) => s.fetchNodeHistory)
+  const historical = useStore((s) => s.historical)
 
   const [range, setRange] = useState('1h')
-  const [history, setHistory] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
   const node = nodes.find((n) => n.id === nodeId)
 
   useEffect(() => {
     if (!nodeId) return
-    const run = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const { data } = await api.get(`/api/metrics/${nodeId}?range=${range}`)
-        setHistory(Array.isArray(data) ? data : [])
-      } catch {
-        setError('Impossibile caricare i dati storici.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    void run()
-  }, [nodeId, range])
+    void fetchNodeHistory(nodeId, range)
+  }, [nodeId, range, fetchNodeHistory])
 
   const livePoint = currentMetrics[nodeId]
+  const history = historical[nodeId] || []
   const mergedHistory = useMemo(() => {
     if (!livePoint?.timestamp) return history
     const last = history[history.length - 1]
@@ -144,8 +131,13 @@ export default function NodeDetail() {
         ))}
       </div>
 
-      {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      {loading ? <p className="text-sm text-slate-400">Caricamento dati...</p> : null}
+      {mergedHistory.length === 0 ? <p className="text-sm text-slate-400">Caricamento dati...</p> : null}
+
+      <section className="grid gap-3 md:grid-cols-3">
+        <Card><Gauge label="CPU live" value={livePoint?.cpu_percent || 0} /></Card>
+        <Card><Gauge label="RAM live" value={livePoint?.memory_percent || 0} /></Card>
+        <Card><Gauge label="Disk live" value={Array.isArray(livePoint?.disk_data) ? Math.max(0, ...livePoint.disk_data.map((d) => Number(d.percent) || 0)) : 0} /></Card>
+      </section>
 
       <section className="rounded-lg border border-slate-700 bg-slate-800 p-4">
         <h3 className="mb-3 text-sm font-semibold text-slate-200">CPU Usage %</h3>
@@ -159,6 +151,7 @@ export default function NodeDetail() {
               <ReferenceLine y={85} stroke="#ef4444" strokeDasharray="4 4" />
               <ReferenceLine y={cpuAverage} stroke="#38bdf8" strokeDasharray="6 6" />
               <Area type="monotone" dataKey="cpu_percent" name="CPU" stroke="#38bdf8" fill="#38bdf833" />
+              <Brush dataKey="timestamp" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -207,6 +200,23 @@ export default function NodeDetail() {
       </section>
 
       <section className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-slate-200">CPU/RAM confronto</h3>
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={mergedHistory}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="timestamp" tickFormatter={formatTimeLabel} minTickGap={40} stroke="#94a3b8" />
+              <YAxis domain={[0, 100]} stroke="#94a3b8" />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar dataKey="cpu_percent" fill="#38bdf8" />
+              <Bar dataKey="memory_percent" fill="#34d399" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-slate-700 bg-slate-800 p-4">
         <h3 className="mb-3 text-sm font-semibold text-slate-200">Alert History (ultimi 20)</h3>
         <div className="space-y-2 text-sm">
           {nodeAlerts.length === 0 ? (
@@ -221,6 +231,28 @@ export default function NodeDetail() {
               </div>
             ))
           )}
+        </div>
+      </section>
+      <section className="rounded-lg border border-slate-700 bg-slate-950 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-slate-200">Timeline eventi</h3>
+        {nodeAlerts.length === 0 ? (
+          <EmptyState title="Nessun evento" message="Non ci sono eventi recenti per questo server." />
+        ) : (
+          <div className="space-y-2 text-xs text-slate-300">
+            {nodeAlerts.map((alert) => (
+              <div key={alert.id} className="rounded border border-slate-800 bg-slate-900 p-2">
+                [{new Date(alert.timestamp).toLocaleTimeString()}] {alert.severity.toUpperCase()} - {alert.message}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="rounded-lg border border-slate-700 bg-slate-900 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-slate-200">Azioni</h3>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="rounded bg-red-700 px-3 py-1.5 text-sm">Restart</button>
+          <button type="button" className="rounded bg-sky-700 px-3 py-1.5 text-sm">Refresh agent</button>
+          <button type="button" className="rounded bg-slate-700 px-3 py-1.5 text-sm">Export dati</button>
         </div>
       </section>
     </div>

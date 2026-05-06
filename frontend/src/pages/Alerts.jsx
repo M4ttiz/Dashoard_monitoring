@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 
-import { useStore } from '../store/useStore.js'
-
-const FILTERS = ['all', 'unread', 'warning', 'critical']
+import { Badge } from '../components/ui/Badge.jsx'
+import { EmptyState } from '../components/ui/EmptyState.jsx'
+import { useStore } from '../store/useDashboardStore.js'
 
 function relativeTime(timestamp) {
   const delta = Math.max(0, Date.now() - new Date(timestamp).getTime())
@@ -18,10 +18,14 @@ function relativeTime(timestamp) {
 export default function AlertsPage() {
   const alerts = useStore((s) => s.alerts)
   const nodes = useStore((s) => s.nodes)
-  const markAlertRead = useStore((s) => s.markAlertRead)
+  const acknowledgeAlert = useStore((s) => s.acknowledgeAlert)
+  const snoozeAlert = useStore((s) => s.snoozeAlert)
   const markAllRead = useStore((s) => s.markAllRead)
+  const ui = useStore((s) => s.ui)
+  const setFilters = useStore((s) => s.setFilters)
 
-  const [activeFilter, setActiveFilter] = useState('all')
+  const [page, setPage] = useState(0)
+  const pageSize = 8
 
   const nodeById = useMemo(() => {
     const map = new Map()
@@ -31,12 +35,14 @@ export default function AlertsPage() {
 
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alert) => {
-      if (activeFilter === 'unread') return !alert.is_read
-      if (activeFilter === 'warning') return alert.severity === 'warning'
-      if (activeFilter === 'critical') return alert.severity === 'critical'
+      if (ui.activeFilters.server !== 'all' && alert.node_id !== ui.activeFilters.server) return false
+      if (ui.activeFilters.severity !== 'all' && alert.severity !== ui.activeFilters.severity) return false
+      if (ui.activeFilters.metric !== 'all' && alert.metric !== ui.activeFilters.metric) return false
       return true
     })
-  }, [activeFilter, alerts])
+  }, [alerts, ui.activeFilters])
+  const pagedAlerts = filteredAlerts.slice(page * pageSize, (page + 1) * pageSize)
+  const metrics = [...new Set(alerts.map((a) => a.metric).filter(Boolean))]
 
   return (
     <div className="space-y-5">
@@ -51,60 +57,86 @@ export default function AlertsPage() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            onClick={() => setActiveFilter(filter)}
-            className={`rounded px-3 py-1.5 text-sm ${
-              activeFilter === filter ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            {filter === 'all'
-              ? 'Tutti'
-              : filter === 'unread'
-                ? 'Non letti'
-                : filter === 'warning'
-                  ? 'Warning'
-                  : 'Critical'}
-          </button>
-        ))}
+      <div className="grid gap-2 md:grid-cols-3">
+        <select
+          value={ui.activeFilters.server}
+          onChange={(e) => setFilters({ ...ui.activeFilters, server: e.target.value })}
+          className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm"
+        >
+          <option value="all">Tutti i server</option>
+          {nodes.map((n) => (
+            <option key={n.id} value={n.id}>
+              {n.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={ui.activeFilters.severity}
+          onChange={(e) => setFilters({ ...ui.activeFilters, severity: e.target.value })}
+          className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm"
+        >
+          <option value="all">Tutte le severity</option>
+          <option value="warning">Warning</option>
+          <option value="critical">Critical</option>
+        </select>
+        <select
+          value={ui.activeFilters.metric}
+          onChange={(e) => setFilters({ ...ui.activeFilters, metric: e.target.value })}
+          className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm"
+        >
+          <option value="all">Tutte le metriche</option>
+          {metrics.map((metric) => (
+            <option key={metric} value={metric}>
+              {metric}
+            </option>
+          ))}
+        </select>
       </div>
 
       {filteredAlerts.length === 0 ? (
-        <div className="rounded-lg border border-emerald-700/40 bg-emerald-950/20 p-8 text-center">
-          <p className="text-3xl">✅</p>
-          <p className="mt-2 text-sm text-emerald-300">Nessun alert da mostrare.</p>
-        </div>
+        <EmptyState title="Nessun alert da mostrare" message="Modifica i filtri oppure attendi nuovi eventi." />
       ) : (
-        <div className="space-y-2">
-          {filteredAlerts.map((alert) => {
+        <div className="overflow-x-auto rounded-lg border border-slate-700">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-900 text-slate-300">
+              <tr>
+                <th className="px-3 py-2">Server</th>
+                <th className="px-3 py-2">Metrica</th>
+                <th className="px-3 py-2">Valore</th>
+                <th className="px-3 py-2">Soglia</th>
+                <th className="px-3 py-2">Severity</th>
+                <th className="px-3 py-2">Timestamp</th>
+                <th className="px-3 py-2">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+          {pagedAlerts.map((alert) => {
             const nodeName = nodeById.get(alert.node_id) || alert.node_id
-            const severityClass = alert.severity === 'critical' ? 'text-red-400' : 'text-yellow-300'
             return (
-              <button
+              <tr
                 key={alert.id}
-                type="button"
-                onClick={() => !alert.is_read && void markAlertRead(alert.id)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-left hover:bg-slate-700/70"
+                className="border-t border-slate-800 bg-slate-900/40"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className={`text-xs font-semibold ${severityClass}`}>{String(alert.severity).toUpperCase()}</p>
-                    <p className="text-sm text-slate-100">
-                      {nodeName} — {String(alert.metric || '').toUpperCase()}
-                    </p>
-                    <p className="text-sm text-slate-300">{alert.message}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!alert.is_read ? <span className="inline-block size-2 rounded-full bg-sky-400" /> : null}
-                    <span className="text-xs text-slate-400">{relativeTime(alert.timestamp)}</span>
-                  </div>
-                </div>
-              </button>
+                <td className="px-3 py-2">{nodeName}</td>
+                <td className="px-3 py-2">{String(alert.metric || '').toUpperCase()}</td>
+                <td className="px-3 py-2">{alert.value ?? '-'}</td>
+                <td className="px-3 py-2">{alert.threshold ?? '-'}</td>
+                <td className="px-3 py-2"><Badge status={alert.severity === 'critical' ? 'critical' : 'warning'}>{alert.severity}</Badge></td>
+                <td className="px-3 py-2">{relativeTime(alert.timestamp)}</td>
+                <td className="px-3 py-2 space-x-1">
+                  <button type="button" className="rounded bg-sky-700 px-2 py-1 text-xs" onClick={() => void acknowledgeAlert(alert.id)}>Ack</button>
+                  <button type="button" className="rounded bg-slate-700 px-2 py-1 text-xs" onClick={() => void snoozeAlert(alert.id)}>Snooze</button>
+                </td>
+              </tr>
             )
           })}
+            </tbody>
+          </table>
+          <div className="flex items-center justify-end gap-2 border-t border-slate-800 p-2">
+            <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} className="rounded bg-slate-800 px-2 py-1 text-xs">Prev</button>
+            <span className="text-xs text-slate-400">Page {page + 1}</span>
+            <button type="button" onClick={() => setPage((p) => ((p + 1) * pageSize < filteredAlerts.length ? p + 1 : p))} className="rounded bg-slate-800 px-2 py-1 text-xs">Next</button>
+          </div>
         </div>
       )}
     </div>
