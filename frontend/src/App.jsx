@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 
 import { useWebSocket } from './hooks/useWebSocket.js'
+import NodeDetail from './pages/NodeDetail.jsx'
 import Overview from './pages/Overview.jsx'
 import { useStore } from './store/useStore.js'
 
@@ -50,7 +51,11 @@ function OverviewPage({ isConnected }) {
 }
 
 function NodeDetailPage({ isConnected }) {
-  return <Layout title="Node Detail" isConnected={isConnected}>Node detail route: `/nodes/:id`.</Layout>
+  return (
+    <Layout title="Node Detail" isConnected={isConnected}>
+      <NodeDetail />
+    </Layout>
+  )
 }
 
 function AlertsPage({ isConnected }) {
