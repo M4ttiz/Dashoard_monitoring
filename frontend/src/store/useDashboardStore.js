@@ -78,6 +78,7 @@ export const useDashboardStore = create((set, get) => ({
       const alerts = await getAlerts()
       const metricsEntries = await Promise.all(
         nodes.map(async (n) => {
+          if (n.status !== 'online') return [n.id, null]
           try {
             const data = await getNodeCurrentMetrics(n.id)
             return [n.id, data]
