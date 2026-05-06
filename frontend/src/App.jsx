@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 
+import AlertToast from './components/AlertToast.jsx'
 import { useWebSocket } from './hooks/useWebSocket.js'
+import Alerts from './pages/Alerts.jsx'
 import NodeDetail from './pages/NodeDetail.jsx'
 import Overview from './pages/Overview.jsx'
 import { useStore } from './store/useStore.js'
@@ -59,14 +61,21 @@ function NodeDetailPage({ isConnected }) {
 }
 
 function AlertsPage({ isConnected }) {
-  return <Layout title="Alert Center" isConnected={isConnected}>Alerts route: `/alerts`.</Layout>
+  return (
+    <Layout title="Alert Center" isConnected={isConnected}>
+      <Alerts />
+    </Layout>
+  )
 }
 
 function App() {
   const fetchNodes = useStore((s) => s.fetchNodes)
   const fetchAlerts = useStore((s) => s.fetchAlerts)
   const handleWebSocketMessage = useStore((s) => s.handleWebSocketMessage)
+  const nodes = useStore((s) => s.nodes)
   const { lastMessage, isConnected } = useWebSocket()
+  const [toastAlert, setToastAlert] = useState(null)
+  const toastTimeoutRef = useRef(null)
 
   useEffect(() => {
     void fetchNodes()
@@ -78,12 +87,44 @@ function App() {
     void handleWebSocketMessage(lastMessage)
   }, [lastMessage, handleWebSocketMessage])
 
+  useEffect(() => {
+    if (!lastMessage || lastMessage.type !== 'new_alert' || !lastMessage.alert) return
+
+    const nodeName = nodes.find((n) => n.id === lastMessage.alert.node_id)?.name
+    window.setTimeout(() => {
+      setToastAlert({
+        ...lastMessage.alert,
+        node_name: nodeName,
+      })
+    }, 0)
+
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current)
+    }
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToastAlert(null)
+      toastTimeoutRef.current = null
+    }, 5000)
+  }, [lastMessage, nodes])
+
+  useEffect(
+    () => () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current)
+      }
+    },
+    [],
+  )
+
   return (
-    <Routes>
-      <Route path="/" element={<OverviewPage isConnected={isConnected} />} />
-      <Route path="/nodes/:id" element={<NodeDetailPage isConnected={isConnected} />} />
-      <Route path="/alerts" element={<AlertsPage isConnected={isConnected} />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<OverviewPage isConnected={isConnected} />} />
+        <Route path="/nodes/:id" element={<NodeDetailPage isConnected={isConnected} />} />
+        <Route path="/alerts" element={<AlertsPage isConnected={isConnected} />} />
+      </Routes>
+      <AlertToast alert={toastAlert} onClose={() => setToastAlert(null)} />
+    </>
   )
 }
 
