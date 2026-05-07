@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 design tokens.
+ * Each `--color-*` and `--font-*` here is exposed both as a CSS variable
+ * and as a Tailwind utility.
+ */
+@theme {
+  --color-bg-base: #111217;
+  --color-bg-surface: #181b1f;
+  --color-bg-elevated: #1f2229;
+  --color-bg-border: #2c3038;
+
+  --color-status-ok: #73bf69;
+  --color-status-warning: #f5a623;
+  --color-status-critical: #f2495c;
+  --color-status-unknown: #808080;
+  --color-status-info: #5794f2;
+
+  --color-text-primary: #d9dce3;
+  --color-text-secondary: #8e9ab0;
+  --color-text-muted: #5a6170;
+  --color-text-data: #d9dce3;
+  --color-accent: #5794f2;
+  --color-accent-dim: rgb(87 148 242 / 0.12);
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Standard panel shells */
+.panel,
+.panel-premium,
+.panel-soft {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-border);
+  box-shadow: none;
+}
+
+.panel-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-bg-border);
+  background: var(--color-bg-elevated);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.text-gradient-accent {
+  color: var(--color-text-primary);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: var(--color-text-primary);
+}
+
+@keyframes led-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px 1px rgb(242 73 92 / 0.45);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 6px 2px rgb(242 73 92 / 0.55);
+    opacity: 0.85;
+  }
+}
+
+.led-ok {
+  box-shadow: 0 0 3px 1px rgb(115 191 105 / 0.45);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-enter {
+  animation: toast-slide-in 150ms ease-out;
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-elevated);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
