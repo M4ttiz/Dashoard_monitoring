@@ -43,10 +43,10 @@ function TrendIcon({ delta }) {
 function KPICard({ label, value, sub, status = 'ok', trendDelta }) {
   const tone = CARD_TONE[status] || CARD_TONE.unknown
   return (
-    <div className={`rounded-[2px] border border-bg-border border-l-4 p-4 ${tone}`}>
-      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-text-muted">{label}</p>
+    <div className={`rounded-[4px] border border-bg-border border-l-4 p-4 ${tone}`}>
+      <p className="font-sans text-[10px] uppercase tracking-wider text-text-muted">{label}</p>
       <p className="mt-1 font-mono text-3xl font-bold text-text-data">{value}</p>
-      <div className="mt-2 flex items-center gap-2 font-mono text-[10px] text-text-secondary">
+      <div className="mt-2 flex items-center gap-2 font-sans text-[11px] text-text-secondary">
         <TrendIcon delta={trendDelta} />
         <span>{sub}</span>
       </div>

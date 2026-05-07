@@ -27,11 +27,11 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 40 }) 
   const isDown = status === 'down'
   const rowTone =
     status === 'critical'
-      ? 'border-l-status-critical bg-status-critical/5 shadow-[inset_-2px_0_8px_-2px_var(--color-status-critical)]'
+      ? 'border-l-status-critical bg-status-critical/5'
       : status === 'warning'
-        ? 'border-l-status-warning bg-status-warning/5 shadow-[inset_-2px_0_8px_-2px_var(--color-status-warning)]'
+        ? 'border-l-status-warning bg-status-warning/5'
         : status === 'down'
-          ? 'border-l-status-unknown bg-status-unknown/5 opacity-60 shadow-[inset_-2px_0_8px_-2px_var(--color-status-unknown)]'
+          ? 'border-l-status-unknown bg-status-unknown/5 opacity-60'
           : 'border-l-transparent'
 
   const criticalAlerts = alerts?.filter((a) => a.severity === 'critical' && !a.is_read).length || 0
@@ -45,12 +45,12 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 40 }) 
       onClick={() => onSelect(node.id)}
       role="row"
       aria-label={`Apri dettaglio ${node.name}`}
-      className={`${COLUMNS_GRID} group w-full cursor-pointer border-l-4 border-b border-bg-border text-left transition-colors duration-80 hover:bg-bg-subtle focus-visible:bg-bg-subtle ${rowTone}`}
+      className={`${COLUMNS_GRID} group w-full cursor-pointer border-l-3 border-b border-bg-border text-left text-[13px] transition-colors duration-100 hover:bg-bg-elevated focus-visible:bg-bg-elevated ${rowTone}`}
       style={{ height }}
     >
       <div role="gridcell" className="min-w-0">
         <p
-          className={`truncate font-display text-sm font-bold uppercase tracking-wide ${
+          className={`truncate font-sans text-sm font-semibold ${
             isDown ? 'text-text-muted' : 'text-text-primary'
           }`}
         >

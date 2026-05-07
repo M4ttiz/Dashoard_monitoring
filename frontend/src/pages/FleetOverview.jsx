@@ -119,11 +119,11 @@ export default function FleetOverview() {
       <div className="panel p-0">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bg-border bg-bg-elevated px-4 py-3">
           <div className="min-w-[220px]">
-            <h1 className="font-display text-sm font-bold uppercase tracking-[0.04em] text-text-primary">
-              FLEET OVERVIEW
+            <h1 className="font-sans text-lg font-semibold text-text-primary">
+              Fleet Overview
             </h1>
-            <p className="mt-1 font-mono text-[11px] text-text-secondary">
-              {nodes.length} NODES · REAL-TIME
+            <p className="mt-1 text-xs text-text-secondary">
+              {nodes.length} nodi monitorati
             </p>
           </div>
 
@@ -186,9 +186,9 @@ export default function FleetOverview() {
 
 function PiePanel({ title, subtitle, data, emptyLabel }) {
   return (
-    <section className="panel p-3">
+    <section className="panel rounded-[4px] p-3">
       <header className="mb-2">
-        <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary">{title}</h2>
+        <h2 className="font-sans text-sm font-semibold text-text-primary">{title}</h2>
         <p className="text-[11px] text-text-secondary">{subtitle}</p>
       </header>
       <div className="grid items-center gap-2 sm:grid-cols-[1fr_auto]">
@@ -211,7 +211,7 @@ function PiePanel({ title, subtitle, data, emptyLabel }) {
       <div className="grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-1">
         {data.map((entry) => (
           <div key={entry.name} className="inline-flex items-center gap-1.5 font-mono text-text-secondary">
-            <span className="size-2 rounded-[2px]" style={{ backgroundColor: entry.color }} />
+            <span className="size-2 rounded-[4px]" style={{ backgroundColor: entry.color }} />
             {entry.name}: <span className="text-text-primary">{entry.value}</span>
           </div>
         ))}
@@ -231,8 +231,8 @@ function HeroPill({ label, value, tone = 'info' }) {
           ? 'border-status-critical/40 bg-status-critical/8 text-status-critical'
           : 'border-accent/40 bg-accent-dim text-accent'
   return (
-    <div className={`rounded-[2px] border px-3 py-2 ${toneClass}`}>
-      <p className="font-mono text-[10px] uppercase tracking-wide opacity-80">
+    <div className={`rounded-[4px] border px-3 py-2 ${toneClass}`}>
+      <p className="font-sans text-[10px] uppercase tracking-wide opacity-80">
         {label}:
       </p>
       <p className="font-mono text-xl font-bold leading-tight">{value}</p>
@@ -267,7 +267,7 @@ function AddNodeModal({ onClose, onSubmit, submitting, error }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-node-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-bg-base/80 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-bg-base/80 px-4"
     >
       <form
         onSubmit={handleSubmit}
@@ -308,14 +308,14 @@ function AddNodeModal({ onClose, onSubmit, submitting, error }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-[2px] border border-bg-border px-3 py-1.5 font-mono text-xs text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+            className="rounded-[4px] border border-bg-border px-3 py-1.5 font-sans text-xs text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
             disabled={submitting}
           >
             Annulla
           </button>
           <button
             type="submit"
-            className="rounded-[2px] bg-accent px-3 py-1.5 font-mono text-xs font-semibold text-white hover:brightness-110 disabled:opacity-60"
+            className="rounded-[4px] bg-accent px-3 py-1.5 font-sans text-xs font-semibold text-white hover:brightness-110 disabled:opacity-60"
             disabled={submitting}
           >
             {submitting ? 'Salvataggio...' : 'Salva nodo'}
@@ -336,7 +336,7 @@ function Field({ label, value, onChange, type = 'text', ...rest }) {
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-[2px] border border-bg-border bg-bg-base px-3 py-2 font-mono text-sm text-text-primary focus-visible:border-accent focus-visible:outline-none"
+        className="w-full rounded-[4px] border border-bg-border bg-bg-base px-3 py-2 font-sans text-sm text-text-primary focus-visible:border-accent focus-visible:outline-none"
         {...rest}
       />
     </label>

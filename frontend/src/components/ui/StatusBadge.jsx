@@ -1,11 +1,11 @@
 import { STATUS_LABEL } from '../../utils/thresholds.js'
 
 const TONE_CLASSES = {
-  ok: 'bg-status-ok/8 border-status-ok/35 text-status-ok',
-  warning: 'bg-status-warning/8 border-status-warning/35 text-status-warning',
-  critical: 'bg-status-critical/8 border-status-critical/35 text-status-critical',
-  down: 'bg-status-unknown/8 border-status-unknown/35 text-status-unknown',
-  unknown: 'bg-status-unknown/8 border-status-unknown/35 text-status-unknown',
+  ok: 'bg-status-ok/10 border-status-ok/35 text-status-ok',
+  warning: 'bg-status-warning/10 border-status-warning/35 text-status-warning',
+  critical: 'bg-status-critical/10 border-status-critical/35 text-status-critical',
+  down: 'bg-status-unknown/10 border-status-unknown/35 text-status-unknown',
+  unknown: 'bg-status-unknown/10 border-status-unknown/35 text-status-unknown',
 }
 
 export default function StatusBadge({ status = 'unknown', label, size = 'md', dot = true }) {
@@ -18,16 +18,15 @@ export default function StatusBadge({ status = 'unknown', label, size = 'md', do
 
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-[2px] border ${tone} font-display font-bold uppercase tracking-[0.18em] ${sizing}`}
+      className={`inline-flex items-center gap-1.5 rounded-[4px] border ${tone} font-sans font-semibold uppercase tracking-wide ${sizing}`}
     >
       {dot ? (
         <span
           aria-hidden="true"
           className={[
-            'inline-block size-2 rounded-[2px] bg-current',
-            // Glow intensity tuned to the prompt.
-            status === 'ok' ? 'shadow-[0_0_5px_1px_currentColor]' : 'shadow-[0_0_6px_1px_currentColor]',
-            status === 'critical' ? 'animate-[led-pulse_1.4s_ease-in-out_infinite]' : '',
+            'inline-block size-2 rounded-full bg-current',
+            status === 'ok' ? 'shadow-[0_0_3px_0_currentColor]' : 'shadow-[0_0_4px_0_currentColor]',
+            status === 'critical' ? 'animate-[led-pulse_2.1s_ease-in-out_infinite]' : '',
           ].join(' ')}
         />
       ) : null}

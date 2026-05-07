@@ -37,7 +37,7 @@ export default function Sidebar({ open, onClose }) {
                 end={end}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-none border-l-3 px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
+                  `flex items-center gap-3 rounded-[4px] border-l-3 px-3 py-2 font-sans text-sm transition-colors ${
                     isActive
                       ? 'border-accent bg-accent-dim text-text-primary'
                       : 'border-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
@@ -47,7 +47,7 @@ export default function Sidebar({ open, onClose }) {
                 <Icon className="size-4" aria-hidden="true" />
                 <span className="flex-1">{label}</span>
                 {to === '/alerts' && unread > 0 ? (
-                  <span className="rounded-[2px] border border-status-critical/35 bg-status-critical/8 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-status-critical">
+                  <span className="rounded-[4px] border border-status-critical/35 bg-status-critical/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-status-critical">
                     {unread}
                   </span>
                 ) : null}

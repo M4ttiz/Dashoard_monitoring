@@ -51,7 +51,7 @@ function smartSample(points, maxPoints = MAX_POINTS) {
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) return null
   return (
-    <div className="rounded-[2px] border border-bg-border bg-bg-elevated/95 p-2 font-mono text-[11px] text-text-primary shadow-lg">
+    <div className="rounded-[4px] border border-bg-border bg-bg-elevated/95 p-2 font-sans text-[11px] text-text-primary shadow-lg">
       <p className="mb-1 text-text-secondary">{formatTimestamp(label, { full: true, seconds: true })}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} style={{ color: entry.color }}>
@@ -115,23 +115,23 @@ export default function MetricChart({
           name={dataKey}
           stroke={colors[0]}
           fill={colors[0]}
-          fillOpacity={0.06}
+          fillOpacity={0.1}
           strokeWidth={2}
           isAnimationActive={false}
         />
       )
 
   return (
-    <section className="border border-bg-border bg-bg-surface">
+    <section className="rounded-[4px] border border-bg-border bg-bg-surface">
       <header className="border-b border-bg-border">
         <div className="flex items-center justify-between px-4 py-3">
-          <h3 className="font-display text-sm font-bold uppercase tracking-[0.04em] text-text-primary">
+          <h3 className="font-sans text-sm font-semibold text-text-primary">
             {title}
           </h3>
         </div>
 
         {stats ? (
-          <div className="bg-bg-elevated px-4 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-text-muted">
+          <div className="bg-bg-elevated px-4 py-2 font-mono text-[10px] text-text-muted">
             <div className="flex items-center gap-4">
               <span>
                 AVG <span className="text-text-primary">{formatPercent(stats.avg, 1)}</span>
@@ -196,7 +196,7 @@ export default function MetricChart({
                 strokeOpacity={0.9}
                 strokeWidth={1}
                 label={{
-                  value: `CRIT ${threshold}${unit}`,
+                  value: `${threshold}${unit}`,
                   fill: 'var(--color-status-critical)',
                   fontSize: 9,
                   fontFamily: 'var(--font-mono)',

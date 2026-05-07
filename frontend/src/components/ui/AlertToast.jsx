@@ -5,8 +5,8 @@ import { X } from 'lucide-react'
 import { useMonitorStore } from '../../store/useMonitorStore.js'
 
 const TONE = {
-  critical: 'border-l-status-critical bg-[#0d0505] text-status-critical',
-  warning: 'border-l-status-warning bg-[#0d0900] text-status-warning',
+  critical: 'border-l-status-critical bg-status-critical/10 text-status-critical',
+  warning: 'border-l-status-warning bg-status-warning/10 text-status-warning',
 }
 
 const AUTO_CLOSE_MS = 6000
@@ -27,8 +27,8 @@ function ToastItem({ toast, onDismiss }) {
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] opacity-95">
-            {severity === 'critical' ? '[!!!]' : '[!]'} {severity.toUpperCase()} · {toast.title}
+          <p className="font-sans text-[11px] font-semibold opacity-95">
+            {severity.toUpperCase()} · {toast.title}
             {toast.nodeId ? ` · ${toast.nodeId}` : ''}
           </p>
           {toast.message ? (
@@ -48,7 +48,7 @@ function ToastItem({ toast, onDismiss }) {
           type="button"
           aria-label="Chiudi notifica"
           onClick={() => onDismiss(toast.id)}
-          className="rounded p-1 text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+          className="rounded-[4px] p-1 text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
         >
           <X className="size-3.5" aria-hidden="true" />
         </button>

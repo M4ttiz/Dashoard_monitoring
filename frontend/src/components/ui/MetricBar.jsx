@@ -25,30 +25,12 @@ export default function MetricBar({ value, max = 100, height = 6, ariaLabel }) {
       className={`relative w-full overflow-hidden ${toneText}`}
       style={{ height }}
     >
-      {/* Track */}
-      <div aria-hidden="true" className="absolute inset-0 bg-bg-border" />
-
-      {/* Filled part: segmented with 25% ticks. */}
+      <div aria-hidden="true" className="absolute inset-0 rounded-[4px] bg-bg-border" />
       <div
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 transition-[width] duration-80 ease-out"
-        style={{
-          width: `${safe}%`,
-          backgroundImage:
-            'repeating-linear-gradient(90deg, currentColor 0, currentColor calc(100% - 1px), transparent calc(100% - 1px), transparent 100%)',
-          backgroundSize: '25% 100%',
-        }}
+        className="absolute inset-y-0 left-0 rounded-[4px] transition-[width] duration-150 ease-out bg-current"
+        style={{ width: `${safe}%` }}
       />
-
-      {/* Vertical tick overlay (every 25%). */}
-      {[25, 50, 75].map((p) => (
-        <span
-          key={p}
-          aria-hidden="true"
-          className="absolute top-0 bottom-0 w-px bg-current opacity-25"
-          style={{ left: `${p}%` }}
-        />
-      ))}
     </div>
   )
 }

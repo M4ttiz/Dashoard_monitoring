@@ -11,7 +11,7 @@ function HeaderCell({ children, className = '' }) {
   return (
     <div
       role="columnheader"
-      className={`font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted ${className}`}
+      className={`font-sans text-[11px] font-semibold uppercase tracking-wide text-text-muted ${className}`}
     >
       {children}
     </div>

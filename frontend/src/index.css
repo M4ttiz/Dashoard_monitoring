@@ -3,39 +3,29 @@
 /*
  * Tailwind v4 design tokens.
  * Each `--color-*` and `--font-*` here is exposed both as a CSS variable
- * and as a Tailwind utility (e.g. bg-bg-surface, text-status-critical).
+ * and as a Tailwind utility.
  */
 @theme {
-  /* Background — più profondi, più veri */
-  --color-bg-base: #07090d; /* quasi nero, con leggero blue shift */
-  --color-bg-surface: #0e1117; /* pannelli */
-  --color-bg-elevated: #141920; /* header di tabella, hover */
-  --color-bg-border: #1f2733; /* separatori */
-  --color-bg-subtle: #1a2030; /* highlight di riga */
+  --color-bg-base: #111217;
+  --color-bg-surface: #181b1f;
+  --color-bg-elevated: #1f2229;
+  --color-bg-border: #2c3038;
 
-  /* Status — più saturi, più decisi */
-  --color-status-ok: #00d97e; /* verde fosforescente */
-  --color-status-warning: #f5a623; /* ambra pura */
-  --color-status-critical: #ff3b30; /* rosso operativo */
-  --color-status-unknown: #4a5568;
-  --color-status-info: #0ea5e9; /* sky blue */
+  --color-status-ok: #73bf69;
+  --color-status-warning: #f5a623;
+  --color-status-critical: #f2495c;
+  --color-status-unknown: #808080;
+  --color-status-info: #5794f2;
 
-  /* Testo */
-  --color-text-primary: #e8edf5;
-  --color-text-secondary: #7a8694;
-  --color-text-muted: #3d4855;
-  --color-text-data: #c8d6e5; /* per valori numerici — leggermente più freddo */
+  --color-text-primary: #d9dce3;
+  --color-text-secondary: #8e9ab0;
+  --color-text-muted: #5a6170;
+  --color-text-data: #d9dce3;
+  --color-accent: #5794f2;
+  --color-accent-dim: rgb(87 148 242 / 0.12);
 
-  /* Accento — un solo accento, usato con parsimonia */
-  --color-accent: #0ea5e9;
-  --color-accent-dim: rgba(14, 165, 233, 0.12);
-
-  /* Font stack — OBBLIGATORIO cambiare */
-  --font-mono: "Berkeley Mono", "TX-02", "Departure Mono", "Martian Mono", ui-monospace,
-    "Cascadia Code", Consolas, monospace;
-  --font-display: "Barlow Condensed", "DIN Next Condensed", "Roboto Condensed", "Arial Narrow",
-    sans-serif;
-  --font-sans: "Inter Variable", "DM Sans", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", monospace;
 }
 
 :root {
@@ -50,62 +40,56 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-bg-base);
-  background-image:
-    /* griglia tecnica sottile */
-    linear-gradient(var(--color-bg-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-bg-border) 1px, transparent 1px);
-  background-size: 32px 32px;
-  background-position: -0.5px -0.5px;
+  background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
 }
 
-/* Reusable premium shells */
-.panel-premium {
-  background: linear-gradient(180deg, rgb(28 33 40 / 0.86), rgb(22 27 34 / 0.96));
-  border: 1px solid rgb(48 54 61 / 0.8);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.04),
-    0 12px 28px -18px rgb(0 0 0 / 0.65);
+/* Standard panel shells */
+.panel,
+.panel-premium,
+.panel-soft {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-border);
+  box-shadow: none;
 }
 
-.panel-soft {
-  background: linear-gradient(180deg, rgb(22 27 34 / 0.8), rgb(22 27 34 / 0.55));
-  border: 1px solid rgb(48 54 61 / 0.6);
+.panel-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-bg-border);
+  background: var(--color-bg-elevated);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .text-gradient-accent {
-  background: linear-gradient(90deg, #7ee787 0%, #58a6ff 45%, #a371f7 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-text-primary);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: var(--color-text-primary);
 }
 
-/* Global focus ring (WCAG AA) */
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+@keyframes led-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px 1px rgb(242 73 92 / 0.45);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 6px 2px rgb(242 73 92 / 0.55);
+    opacity: 0.85;
+  }
 }
 
-/* Custom scrollbars for monitor screens */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-bg-base);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-bg-border);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-bg-elevated);
+.led-ok {
+  box-shadow: 0 0 3px 1px rgb(115 191 105 / 0.45);
 }
 
-/* Toast slide-in animation; respects reduced motion */
 @keyframes toast-slide-in {
   from {
     transform: translateX(100%);
@@ -121,6 +105,27 @@ body {
   animation: toast-slide-in 150ms ease-out;
 }
 
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-elevated);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -130,78 +135,3 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
-
-/* --- NOC Redesign overrides (added at end to win in cascade) --- */
-
-.panel {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-bg-border);
-}
-
-.panel-header {
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--color-bg-border);
-  background: var(--color-bg-elevated);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-@keyframes led-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 3px 1px var(--color-status-critical);
-    opacity: 1;
-  }
-  50% {
-    box-shadow: 0 0 8px 3px var(--color-status-critical);
-    opacity: 0.65;
-  }
-}
-
-.led-ok {
-  box-shadow: 0 0 5px 1px var(--color-status-ok);
-}
-
-/* Focus ring più tecnico (override) */
-:focus-visible {
-  outline: 1px solid var(--color-accent);
-  outline-offset: 1px;
-  border-radius: 0;
-}
-
-/* Scrollbar più discreta (override) */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  border-radius: 0;
-}
-
-/* Legacy classes (left in place for compatibility) -> NOC styling */
-.panel-premium {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-bg-border);
-  box-shadow: none;
-}
-
-.panel-soft {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-bg-border);
-}
-
-.text-gradient-accent {
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: initial;
-  color: var(--color-text-primary);
-  -webkit-text-fill-color: var(--color-text-primary);
-}
-
