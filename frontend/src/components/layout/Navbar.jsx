@@ -1,21 +1,32 @@
-import { Bell, Menu, Wifi, WifiOff } from 'lucide-react'
+import { ChevronDown, Menu, Share2, Wifi, WifiOff } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
-import { useUnreadAlertCount } from '../../hooks/useAlerts.js'
 import { useMonitorStore } from '../../store/useMonitorStore.js'
-import { useFleetData } from '../../hooks/useFleetData.js'
-import { useFleetMetrics } from '../../hooks/useFleetMetrics.js'
-import { statusFromNode } from '../../utils/thresholds.js'
+
+const PAGE_LABELS = {
+  '/': 'Fleet Overview',
+  '/hosts': 'Hosts',
+  '/alerts': 'Alerts',
+  '/inventory': 'Inventory',
+  '/metrics': 'Metrics',
+  '/trends': 'Trends',
+  '/reports': 'Reports',
+  '/settings': 'Settings',
+  '/integrations': 'Integrations',
+}
 
 export default function Navbar({ onToggleSidebar }) {
+  const location = useLocation()
   const wsConnected = useMonitorStore((s) => s.wsConnected)
-  const unread = useUnreadAlertCount()
-  const { data: nodes = [] } = useFleetData()
-  const metricsMap = useFleetMetrics(nodes)
+  const selectedRange = useMonitorStore((s) => s.selectedRange)
+  const setSelectedRange = useMonitorStore((s) => s.setSelectedRange)
+  const [autoRefresh, setAutoRefresh] = useState('30s')
 
-  const criticalCount = nodes.reduce((acc, n) => {
-    const status = statusFromNode(n, metricsMap.get(n.id))
-    return status === 'critical' ? acc + 1 : acc
-  }, 0)
+  const pageLabel = useMemo(() => {
+    if (location.pathname.startsWith('/devices/')) return 'Host Detail'
+    return PAGE_LABELS[location.pathname] || 'Fleet Overview'
+  }, [location.pathname])
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-bg-border bg-bg-surface/80 px-4 backdrop-blur-xl">
@@ -28,38 +39,49 @@ export default function Navbar({ onToggleSidebar }) {
         <Menu className="size-5" aria-hidden="true" />
       </button>
 
-      <div className="flex items-center gap-2">
-        <div className="flex size-7 items-center justify-center rounded-md bg-accent/15 text-accent ring-1 ring-accent/40 shadow-[0_0_0_1px_rgba(56,139,253,0.1),0_0_22px_-8px_rgba(56,139,253,0.7)]">
-          <span className="font-mono text-xs font-bold">M</span>
-        </div>
-        <span className="font-mono text-sm font-semibold tracking-wide text-gradient-accent">
-          MISAT Monitor
-        </span>
+      <div className="inline-flex items-center gap-2 rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5">
+        <span className="font-mono text-xs text-text-muted">Monitoring</span>
+        <ChevronDown className="size-3.5 text-text-muted" />
+        <span className="font-mono text-sm font-semibold text-text-primary">{pageLabel}</span>
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        {criticalCount > 0 ? (
-          <span
-            aria-live="polite"
-            className="hidden items-center gap-1.5 rounded-md bg-status-critical/15 px-2.5 py-1 font-mono text-xs font-semibold text-status-critical ring-1 ring-status-critical/30 sm:inline-flex"
+        <label className="inline-flex items-center gap-2 rounded-md border border-bg-border bg-bg-elevated px-2 py-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">Range</span>
+          <select
+            value={selectedRange}
+            onChange={(e) => setSelectedRange(e.target.value)}
+            className="bg-transparent font-mono text-xs text-text-primary focus-visible:outline-none"
           >
-            <Bell className="size-3.5" aria-hidden="true" />
-            {criticalCount} critical
-          </span>
-        ) : null}
-
-        {unread > 0 ? (
-          <span
-            aria-live="polite"
-            className="inline-flex items-center gap-1.5 rounded-md bg-status-warning/15 px-2.5 py-1 font-mono text-xs font-semibold text-status-warning ring-1 ring-status-warning/30"
+            <option className="bg-bg-surface" value="5m">Last 5 minutes</option>
+            <option className="bg-bg-surface" value="15m">Last 15 minutes</option>
+            <option className="bg-bg-surface" value="1h">Last 1 hour</option>
+            <option className="bg-bg-surface" value="24h">Last 24 hours</option>
+          </select>
+        </label>
+        <label className="inline-flex items-center gap-2 rounded-md border border-bg-border bg-bg-elevated px-2 py-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">Auto</span>
+          <select
+            value={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.value)}
+            className="bg-transparent font-mono text-xs text-text-primary focus-visible:outline-none"
           >
-            {unread} alert non letti
-          </span>
-        ) : null}
+            <option className="bg-bg-surface" value="10s">10s</option>
+            <option className="bg-bg-surface" value="30s">30s</option>
+            <option className="bg-bg-surface" value="60s">60s</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 rounded-md border border-bg-border bg-bg-elevated px-2.5 py-1.5 font-mono text-xs text-text-secondary hover:text-text-primary"
+        >
+          <Share2 className="size-3.5" />
+          Share
+        </button>
 
         <span
           aria-live="polite"
-          className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs ${
+          className={`fixed right-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-[10px] ${
             wsConnected
               ? 'bg-status-ok/15 text-status-ok ring-1 ring-status-ok/30'
               : 'bg-status-unknown/15 text-text-secondary ring-1 ring-bg-border'
@@ -70,7 +92,7 @@ export default function Navbar({ onToggleSidebar }) {
           ) : (
             <WifiOff className="size-3.5" aria-hidden="true" />
           )}
-          {wsConnected ? 'WS Connected' : 'WS Offline'}
+          {wsConnected ? 'WS' : 'OFF'}
         </span>
       </div>
     </header>

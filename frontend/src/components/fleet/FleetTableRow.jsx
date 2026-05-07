@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { BarChart3, Bell, List, MoreHorizontal } from 'lucide-react'
 
 import AlertChip from '../ui/AlertChip.jsx'
 import MetricBar from '../ui/MetricBar.jsx'
@@ -16,9 +16,9 @@ function metricCellTone(value) {
 }
 
 const COLUMNS_GRID =
-  'grid grid-cols-[minmax(160px,1.4fr)_minmax(110px,0.9fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(110px,0.9fr)_minmax(70px,0.5fr)_44px] items-center gap-3 px-4'
+  'grid grid-cols-[minmax(190px,1.3fr)_minmax(90px,0.6fr)_minmax(140px,1fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_minmax(90px,0.6fr)_minmax(90px,0.7fr)_minmax(120px,0.9fr)_minmax(130px,1fr)] items-center gap-3 px-4'
 
-function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) {
+function FleetTableRow({ node, metric, status, alerts, onSelect, height = 52 }) {
   const cpu = metric?.cpu_percent
   const ram = metric?.memory_percent
   const disk = Array.isArray(metric?.disk_data)
@@ -35,18 +35,25 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
           ? 'border-l-status-unknown opacity-60'
           : 'border-l-transparent'
 
-  const criticalAlerts = alerts?.filter((a) => a.severity === 'critical' && !a.is_read).length || 0
-  const warningAlerts = alerts?.filter((a) => a.severity === 'warning' && !a.is_read).length || 0
+  const criticalAlerts = alerts?.filter((a) => a.severity === 'critical').length || 0
+  const warningAlerts = alerts?.filter((a) => a.severity === 'warning').length || 0
+  const unknownAlerts =
+    alerts?.filter((a) => !['critical', 'warning'].includes(String(a.severity))).length || 0
   const totalUnread = criticalAlerts + warningAlerts
   const alertSeverity = criticalAlerts > 0 ? 'critical' : 'warning'
+  const services = {
+    ok: [cpu, ram, disk].filter((v) => Number(v) < WARNING_THRESHOLD).length,
+    warning: [cpu, ram, disk].filter(
+      (v) => Number(v) >= WARNING_THRESHOLD && Number(v) < CRITICAL_THRESHOLD,
+    ).length,
+    critical: [cpu, ram, disk].filter((v) => Number(v) >= CRITICAL_THRESHOLD).length,
+    unknown: [cpu, ram, disk].filter((v) => !Number.isFinite(Number(v))).length,
+  }
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(node.id)}
+    <div
       role="row"
-      aria-label={`Apri dettaglio ${node.name}`}
-      className={`${COLUMNS_GRID} group w-full cursor-pointer border-l-4 border-b border-bg-border/60 text-left transition hover:bg-bg-elevated focus-visible:bg-bg-elevated ${rowTone}`}
+      className={`${COLUMNS_GRID} group w-full border-l-4 border-b border-bg-border/60 text-left transition hover:bg-bg-elevated ${rowTone}`}
       style={{ height }}
     >
       <div role="gridcell" className="min-w-0">
@@ -67,36 +74,51 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
         <StatusBadge status={status} size="sm" />
       </div>
 
+      <div role="gridcell" className="font-mono text-xs text-text-secondary">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className="size-2 rounded-full bg-status-ok" />
+            <span>{services.ok}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="size-2 rounded-full bg-status-warning" />
+            <span>{services.warning}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="size-2 rounded-full bg-status-critical" />
+            <span>{services.critical}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="size-2 rounded-full bg-status-unknown" />
+            <span>{services.unknown}</span>
+          </div>
+        </div>
+      </div>
+
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(cpu)}`}>
-            {formatPercent(cpu, 0)}
-          </span>
           <div className="flex-1">
             <MetricBar value={cpu} ariaLabel={`CPU ${node.name}`} />
           </div>
+          <span className={`w-10 text-right font-mono text-xs ${metricCellTone(cpu)}`}>{formatPercent(cpu, 0)}</span>
         </div>
       </div>
 
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(ram)}`}>
-            {formatPercent(ram, 0)}
-          </span>
           <div className="flex-1">
-            <MetricBar value={ram} ariaLabel={`RAM ${node.name}`} />
+            <MetricBar value={ram} ariaLabel={`Memory ${node.name}`} />
           </div>
+          <span className={`w-10 text-right font-mono text-xs ${metricCellTone(ram)}`}>{formatPercent(ram, 0)}</span>
         </div>
       </div>
 
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(disk)}`}>
-            {formatPercent(disk, 0)}
-          </span>
           <div className="flex-1">
             <MetricBar value={disk} ariaLabel={`Disk ${node.name}`} />
           </div>
+          <span className={`w-10 text-right font-mono text-xs ${metricCellTone(disk)}`}>{formatPercent(disk, 0)}</span>
         </div>
       </div>
 
@@ -105,16 +127,44 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
       </div>
 
       <div role="gridcell">
-        <AlertChip count={totalUnread} severity={alertSeverity} />
+        <AlertChip count={totalUnread + unknownAlerts} severity={alertSeverity} />
       </div>
 
-      <div role="gridcell" className="flex items-center justify-end">
-        <ChevronRight
-          className="size-4 text-text-muted opacity-0 transition group-hover:opacity-100"
-          aria-hidden="true"
-        />
+      <div role="gridcell" className="flex items-center justify-end gap-1 text-text-muted">
+        <button
+          type="button"
+          onClick={() => onSelect(node.id)}
+          className="rounded p-1 hover:bg-bg-base hover:text-text-primary"
+          aria-label={`Open charts for ${node.name}`}
+        >
+          <BarChart3 className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelect(node.id)}
+          className="rounded p-1 hover:bg-bg-base hover:text-text-primary"
+          aria-label={`Open list for ${node.name}`}
+        >
+          <List className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelect(node.id)}
+          className="rounded p-1 hover:bg-bg-base hover:text-text-primary"
+          aria-label={`Open alerts for ${node.name}`}
+        >
+          <Bell className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelect(node.id)}
+          className="rounded p-1 hover:bg-bg-base hover:text-text-primary"
+          aria-label={`Open menu for ${node.name}`}
+        >
+          <MoreHorizontal className="size-3.5" />
+        </button>
       </div>
-    </button>
+    </div>
   )
 }
 
