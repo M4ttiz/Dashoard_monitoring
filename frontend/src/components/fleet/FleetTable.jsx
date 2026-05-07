@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 
 import SkeletonRow from '../ui/SkeletonRow.jsx'
@@ -33,7 +33,7 @@ export default function FleetTable({
     overscan: 5,
   })
 
-  const items = useMemo(() => rowVirtualizer.getVirtualItems(), [rowVirtualizer])
+  const items = rowVirtualizer.getVirtualItems()
 
   return (
     <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-surface">
