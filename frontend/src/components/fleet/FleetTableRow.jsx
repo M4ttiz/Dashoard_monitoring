@@ -1,5 +1,4 @@
 import { memo } from 'react'
-import { ChevronRight } from 'lucide-react'
 
 import AlertChip from '../ui/AlertChip.jsx'
 import MetricBar from '../ui/MetricBar.jsx'
@@ -18,7 +17,7 @@ function metricCellTone(value) {
 const COLUMNS_GRID =
   'grid grid-cols-[minmax(160px,1.4fr)_minmax(110px,0.9fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_minmax(110px,0.9fr)_minmax(70px,0.5fr)_44px] items-center gap-3 px-4'
 
-function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) {
+function FleetTableRow({ node, metric, status, alerts, onSelect, height = 40 }) {
   const cpu = metric?.cpu_percent
   const ram = metric?.memory_percent
   const disk = Array.isArray(metric?.disk_data)
@@ -28,11 +27,11 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
   const isDown = status === 'down'
   const rowTone =
     status === 'critical'
-      ? 'border-l-status-critical bg-status-critical/5'
+      ? 'border-l-status-critical bg-status-critical/5 shadow-[inset_-2px_0_8px_-2px_var(--color-status-critical)]'
       : status === 'warning'
-        ? 'border-l-status-warning bg-status-warning/5'
+        ? 'border-l-status-warning bg-status-warning/5 shadow-[inset_-2px_0_8px_-2px_var(--color-status-warning)]'
         : status === 'down'
-          ? 'border-l-status-unknown opacity-60'
+          ? 'border-l-status-unknown bg-status-unknown/5 opacity-60 shadow-[inset_-2px_0_8px_-2px_var(--color-status-unknown)]'
           : 'border-l-transparent'
 
   const criticalAlerts = alerts?.filter((a) => a.severity === 'critical' && !a.is_read).length || 0
@@ -46,13 +45,13 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
       onClick={() => onSelect(node.id)}
       role="row"
       aria-label={`Apri dettaglio ${node.name}`}
-      className={`${COLUMNS_GRID} group w-full cursor-pointer border-l-4 border-b border-bg-border/60 text-left transition hover:bg-bg-elevated focus-visible:bg-bg-elevated ${rowTone}`}
+      className={`${COLUMNS_GRID} group w-full cursor-pointer border-l-4 border-b border-bg-border text-left transition-colors duration-80 hover:bg-bg-subtle focus-visible:bg-bg-subtle ${rowTone}`}
       style={{ height }}
     >
       <div role="gridcell" className="min-w-0">
         <p
-          className={`truncate font-mono text-sm font-semibold ${
-            isDown ? 'italic text-text-muted' : 'text-text-primary'
+          className={`truncate font-display text-sm font-bold uppercase tracking-wide ${
+            isDown ? 'text-text-muted' : 'text-text-primary'
           }`}
         >
           {node.name}
@@ -69,7 +68,7 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
 
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(cpu)}`}>
+          <span className={`w-10 font-mono text-right text-xs font-semibold ${metricCellTone(cpu)}`}>
             {formatPercent(cpu, 0)}
           </span>
           <div className="flex-1">
@@ -80,7 +79,7 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
 
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(ram)}`}>
+          <span className={`w-10 font-mono text-right text-xs font-semibold ${metricCellTone(ram)}`}>
             {formatPercent(ram, 0)}
           </span>
           <div className="flex-1">
@@ -91,7 +90,7 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
 
       <div role="gridcell">
         <div className="flex items-center gap-2">
-          <span className={`w-12 font-mono text-xs ${metricCellTone(disk)}`}>
+          <span className={`w-10 font-mono text-right text-xs font-semibold ${metricCellTone(disk)}`}>
             {formatPercent(disk, 0)}
           </span>
           <div className="flex-1">
@@ -109,10 +108,12 @@ function FleetTableRow({ node, metric, status, alerts, onSelect, height = 48 }) 
       </div>
 
       <div role="gridcell" className="flex items-center justify-end">
-        <ChevronRight
-          className="size-4 text-text-muted opacity-0 transition group-hover:opacity-100"
+        <span
           aria-hidden="true"
-        />
+          className="font-mono text-xl leading-none text-text-muted transition-colors duration-80 group-hover:text-accent"
+        >
+          ›
+        </span>
       </div>
     </button>
   )

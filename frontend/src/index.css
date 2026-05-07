@@ -6,25 +6,36 @@
  * and as a Tailwind utility (e.g. bg-bg-surface, text-status-critical).
  */
 @theme {
-  --color-bg-base: #0d1117;
-  --color-bg-surface: #161b22;
-  --color-bg-elevated: #1c2128;
-  --color-bg-border: #30363d;
+  /* Background — più profondi, più veri */
+  --color-bg-base: #07090d; /* quasi nero, con leggero blue shift */
+  --color-bg-surface: #0e1117; /* pannelli */
+  --color-bg-elevated: #141920; /* header di tabella, hover */
+  --color-bg-border: #1f2733; /* separatori */
+  --color-bg-subtle: #1a2030; /* highlight di riga */
 
-  --color-status-ok: #3fb950;
-  --color-status-warning: #d29922;
-  --color-status-critical: #f85149;
-  --color-status-unknown: #6e7681;
-  --color-status-info: #388bfd;
+  /* Status — più saturi, più decisi */
+  --color-status-ok: #00d97e; /* verde fosforescente */
+  --color-status-warning: #f5a623; /* ambra pura */
+  --color-status-critical: #ff3b30; /* rosso operativo */
+  --color-status-unknown: #4a5568;
+  --color-status-info: #0ea5e9; /* sky blue */
 
-  --color-text-primary: #e6edf3;
-  --color-text-secondary: #8b949e;
-  --color-text-muted: #484f58;
+  /* Testo */
+  --color-text-primary: #e8edf5;
+  --color-text-secondary: #7a8694;
+  --color-text-muted: #3d4855;
+  --color-text-data: #c8d6e5; /* per valori numerici — leggermente più freddo */
 
-  --color-accent: #388bfd;
+  /* Accento — un solo accento, usato con parsimonia */
+  --color-accent: #0ea5e9;
+  --color-accent-dim: rgba(14, 165, 233, 0.12);
 
-  --font-sans: "Inter", "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Font stack — OBBLIGATORIO cambiare */
+  --font-mono: "Berkeley Mono", "TX-02", "Departure Mono", "Martian Mono", ui-monospace,
+    "Cascadia Code", Consolas, monospace;
+  --font-display: "Barlow Condensed", "DIN Next Condensed", "Roboto Condensed", "Arial Narrow",
+    sans-serif;
+  --font-sans: "Inter Variable", "DM Sans", system-ui, sans-serif;
 }
 
 :root {
@@ -39,13 +50,15 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(1100px 500px at 90% -10%, rgb(56 139 253 / 0.14), transparent 70%),
-    radial-gradient(900px 420px at -10% -20%, rgb(63 185 80 / 0.1), transparent 68%),
-    var(--color-bg-base);
+  background-color: var(--color-bg-base);
+  background-image:
+    /* griglia tecnica sottile */
+    linear-gradient(var(--color-bg-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-bg-border) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -0.5px -0.5px;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* Reusable premium shells */
@@ -95,7 +108,7 @@ body {
 /* Toast slide-in animation; respects reduced motion */
 @keyframes toast-slide-in {
   from {
-    transform: translateX(24px);
+    transform: translateX(100%);
     opacity: 0;
   }
   to {
@@ -105,7 +118,7 @@ body {
 }
 
 .toast-enter {
-  animation: toast-slide-in 200ms ease-out;
+  animation: toast-slide-in 150ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -117,3 +130,78 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* --- NOC Redesign overrides (added at end to win in cascade) --- */
+
+.panel {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-border);
+}
+
+.panel-header {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-bg-border);
+  background: var(--color-bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@keyframes led-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px 1px var(--color-status-critical);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 8px 3px var(--color-status-critical);
+    opacity: 0.65;
+  }
+}
+
+.led-ok {
+  box-shadow: 0 0 5px 1px var(--color-status-ok);
+}
+
+/* Focus ring più tecnico (override) */
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
+  border-radius: 0;
+}
+
+/* Scrollbar più discreta (override) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 0;
+}
+
+/* Legacy classes (left in place for compatibility) -> NOC styling */
+.panel-premium {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-border);
+  box-shadow: none;
+}
+
+.panel-soft {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-border);
+}
+
+.text-gradient-accent {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--color-text-primary);
+  -webkit-text-fill-color: var(--color-text-primary);
+}
+

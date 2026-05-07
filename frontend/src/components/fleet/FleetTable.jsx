@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import SkeletonRow from '../ui/SkeletonRow.jsx'
 import FleetTableRow, { FLEET_TABLE_COLUMNS_GRID } from './FleetTableRow.jsx'
 
-const ROW_HEIGHT = 48
+const ROW_HEIGHT = 40
 const HEADER_HEIGHT = 36
 
 function HeaderCell({ children, className = '' }) {
@@ -36,7 +36,7 @@ export default function FleetTable({
   const items = rowVirtualizer.getVirtualItems()
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-surface">
+    <div className="overflow-hidden border border-bg-border bg-bg-surface">
       <div
         role="row"
         className={`${FLEET_TABLE_COLUMNS_GRID} sticky top-0 z-10 border-b border-bg-border bg-bg-elevated`}

@@ -51,7 +51,7 @@ function smartSample(points, maxPoints = MAX_POINTS) {
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) return null
   return (
-    <div className="rounded-md border border-bg-border bg-bg-elevated/95 p-2 font-mono text-[11px] text-text-primary shadow-lg">
+    <div className="rounded-[2px] border border-bg-border bg-bg-elevated/95 p-2 font-mono text-[11px] text-text-primary shadow-lg">
       <p className="mb-1 text-text-secondary">{formatTimestamp(label, { full: true, seconds: true })}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} style={{ color: entry.color }}>
@@ -68,7 +68,13 @@ export default function MetricChart({
   dataKey,
   multi = false,
   dataKeys = [],
-  colors = ['#388bfd', '#d29922', '#3fb950', '#f85149', '#8957e5'],
+  colors = [
+    'var(--color-status-info)',
+    'var(--color-status-warning)',
+    'var(--color-status-ok)',
+    'var(--color-status-critical)',
+    'var(--color-accent)',
+  ],
   threshold = 85,
   unit = '%',
   height = 240,
@@ -98,7 +104,7 @@ export default function MetricChart({
           name={key}
           stroke={colors[idx % colors.length]}
           dot={false}
-          strokeWidth={1.5}
+          strokeWidth={2}
           isAnimationActive={false}
         />
       ))
@@ -109,32 +115,39 @@ export default function MetricChart({
           name={dataKey}
           stroke={colors[0]}
           fill={colors[0]}
-          fillOpacity={0.18}
-          strokeWidth={1.5}
+          fillOpacity={0.06}
+          strokeWidth={2}
           isAnimationActive={false}
         />
       )
 
   return (
-    <section className="rounded-lg border border-bg-border bg-bg-surface p-4">
-      <header className="mb-3 flex items-center justify-between">
-        <h3 className="font-mono text-sm font-semibold text-text-primary">{title}</h3>
+    <section className="border border-bg-border bg-bg-surface">
+      <header className="border-b border-bg-border">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h3 className="font-display text-sm font-bold uppercase tracking-[0.04em] text-text-primary">
+            {title}
+          </h3>
+        </div>
+
         {stats ? (
-          <div className="flex items-center gap-3 font-mono text-[11px] text-text-secondary">
-            <span>
-              Avg <span className="text-text-primary">{formatPercent(stats.avg, 1)}</span>
-            </span>
-            <span>
-              Max <span className="text-status-warning">{formatPercent(stats.max, 1)}</span>
-            </span>
-            <span>
-              Min <span className="text-status-ok">{formatPercent(stats.min, 1)}</span>
-            </span>
+          <div className="bg-bg-elevated px-4 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-text-muted">
+            <div className="flex items-center gap-4">
+              <span>
+                AVG <span className="text-text-primary">{formatPercent(stats.avg, 1)}</span>
+              </span>
+              <span>
+                MAX <span className="text-status-warning">{formatPercent(stats.max, 1)}</span>
+              </span>
+              <span>
+                MIN <span className="text-status-ok">{formatPercent(stats.min, 1)}</span>
+              </span>
+            </div>
           </div>
         ) : null}
       </header>
 
-      <div style={{ height }}>
+      <div style={{ height }} className="p-4">
         {loading ? (
           <div className="flex h-full items-center justify-center">
             <Spinner size={20} />
@@ -146,18 +159,32 @@ export default function MetricChart({
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <Chart data={sampled} margin={{ top: 6, right: 12, bottom: 0, left: -8 }}>
-              <CartesianGrid strokeDasharray="2 4" stroke="var(--color-bg-border)" opacity={0.5} />
+              <CartesianGrid
+                strokeDasharray="none"
+                stroke="var(--color-bg-border)"
+                strokeOpacity={0.6}
+                horizontal={true}
+                vertical={false}
+              />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(v) => formatTimestamp(v)}
                 stroke="var(--color-text-muted)"
-                tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                tick={{
+                  fontSize: 9,
+                  fontFamily: 'var(--font-mono)',
+                  fill: 'var(--color-text-muted)',
+                }}
                 minTickGap={32}
               />
               <YAxis
                 domain={[0, 100]}
                 stroke="var(--color-text-muted)"
-                tick={{ fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                tick={{
+                  fontSize: 9,
+                  fontFamily: 'var(--font-mono)',
+                  fill: 'var(--color-text-muted)',
+                }}
                 tickFormatter={(v) => `${v}${unit}`}
                 width={36}
               />
@@ -165,13 +192,15 @@ export default function MetricChart({
               <ReferenceLine
                 y={threshold}
                 stroke="var(--color-status-critical)"
-                strokeDasharray="4 4"
-                strokeOpacity={0.7}
+                strokeDasharray="3 3"
+                strokeOpacity={0.9}
+                strokeWidth={1}
                 label={{
-                  value: `${threshold}${unit}`,
+                  value: `CRIT ${threshold}${unit}`,
                   fill: 'var(--color-status-critical)',
-                  fontSize: 10,
-                  position: 'right',
+                  fontSize: 9,
+                  fontFamily: 'var(--font-mono)',
+                  position: 'insideTopRight',
                 }}
               />
               {multi ? <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} /> : null}

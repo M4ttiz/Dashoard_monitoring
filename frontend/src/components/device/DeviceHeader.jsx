@@ -5,10 +5,10 @@ import StatusBadge from '../ui/StatusBadge.jsx'
 
 export default function DeviceHeader({ node, status, onDelete, deleting }) {
   return (
-    <div className="space-y-2">
+    <div className="panel p-4">
       <Link
         to="/"
-        className="inline-flex items-center gap-1.5 font-mono text-xs text-accent hover:underline"
+        className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-text-secondary hover:text-text-primary"
       >
         <ArrowLeft className="size-3.5" aria-hidden="true" />
         Fleet Overview
@@ -17,12 +17,12 @@ export default function DeviceHeader({ node, status, onDelete, deleting }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className="truncate font-mono text-2xl font-semibold text-text-primary">
+            <h1 className="truncate font-display text-sm font-bold uppercase tracking-wide text-text-primary">
               {node?.name || '—'}
             </h1>
             <StatusBadge status={status} />
           </div>
-          <p className="font-mono text-xs text-text-secondary">
+          <p className="mt-1 font-mono text-[10px] text-text-secondary">
             {node?.host || '—'}
             {node?.port ? `:${node.port}` : ''}
           </p>
@@ -34,7 +34,7 @@ export default function DeviceHeader({ node, status, onDelete, deleting }) {
               type="button"
               onClick={onDelete}
               disabled={deleting}
-              className="inline-flex items-center gap-1.5 rounded-md border border-status-critical/40 bg-status-critical/10 px-3 py-1.5 font-mono text-xs font-semibold text-status-critical hover:bg-status-critical/20 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-[2px] border border-status-critical/35 bg-status-critical/4 px-3 py-1.5 font-mono text-[10px] font-semibold text-status-critical hover:bg-status-critical/6 disabled:opacity-60"
             >
               <Trash2 className="size-3.5" aria-hidden="true" />
               {deleting ? 'Rimozione...' : 'Rimuovi'}

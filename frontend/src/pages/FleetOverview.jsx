@@ -116,23 +116,22 @@ export default function FleetOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="panel-premium rounded-xl p-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">NOC Command Center</p>
-            <h1 className="mt-1 font-mono text-2xl font-semibold text-gradient-accent">Fleet Overview</h1>
-            <p className="mt-1 text-xs text-text-secondary">
-              Visione real-time della flotta con priorita' operative.
+      <div className="panel p-0">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bg-border bg-bg-elevated px-4 py-3">
+          <div className="min-w-[220px]">
+            <h1 className="font-display text-sm font-bold uppercase tracking-[0.04em] text-text-primary">
+              FLEET OVERVIEW
+            </h1>
+            <p className="mt-1 font-mono text-[11px] text-text-secondary">
+              {nodes.length} NODES · REAL-TIME
             </p>
-            <p className="text-xs text-text-secondary">
-            {nodes.length} nodi monitorati · drill-down sulla riga per il dettaglio
-          </p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+
+          <div className="flex flex-wrap items-stretch gap-2">
             <HeroPill label="OK" value={counts.ok} tone="ok" />
-            <HeroPill label="Warn" value={counts.warning} tone="warning" />
-            <HeroPill label="Critical" value={counts.critical} tone="critical" />
-            <HeroPill label="Unread" value={unreadCritical + unreadWarning} tone="info" />
+            <HeroPill label="WARN" value={counts.warning} tone="warning" />
+            <HeroPill label="CRIT" value={counts.critical} tone="critical" />
+            <HeroPill label="UNREAD" value={unreadCritical + unreadWarning} tone="info" />
           </div>
         </div>
       </div>
@@ -187,7 +186,7 @@ export default function FleetOverview() {
 
 function PiePanel({ title, subtitle, data, emptyLabel }) {
   return (
-    <section className="panel-soft rounded-xl p-3">
+    <section className="panel p-3">
       <header className="mb-2">
         <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary">{title}</h2>
         <p className="text-[11px] text-text-secondary">{subtitle}</p>
@@ -212,7 +211,7 @@ function PiePanel({ title, subtitle, data, emptyLabel }) {
       <div className="grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-1">
         {data.map((entry) => (
           <div key={entry.name} className="inline-flex items-center gap-1.5 font-mono text-text-secondary">
-            <span className="size-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="size-2 rounded-[2px]" style={{ backgroundColor: entry.color }} />
             {entry.name}: <span className="text-text-primary">{entry.value}</span>
           </div>
         ))}
@@ -225,17 +224,18 @@ function PiePanel({ title, subtitle, data, emptyLabel }) {
 function HeroPill({ label, value, tone = 'info' }) {
   const toneClass =
     tone === 'ok'
-      ? 'bg-status-ok/15 text-status-ok ring-status-ok/30'
+      ? 'border-status-ok/40 bg-status-ok/8 text-status-ok'
       : tone === 'warning'
-        ? 'bg-status-warning/15 text-status-warning ring-status-warning/30'
+        ? 'border-status-warning/40 bg-status-warning/8 text-status-warning'
         : tone === 'critical'
-          ? 'bg-status-critical/15 text-status-critical ring-status-critical/35'
-          : 'bg-status-info/15 text-status-info ring-status-info/35'
-
+          ? 'border-status-critical/40 bg-status-critical/8 text-status-critical'
+          : 'border-accent/40 bg-accent-dim text-accent'
   return (
-    <div className={`rounded-lg px-2.5 py-2 ring-1 ${toneClass}`}>
-      <p className="font-mono text-[10px] uppercase tracking-wide opacity-80">{label}</p>
-      <p className="font-mono text-lg font-semibold leading-tight">{value}</p>
+    <div className={`rounded-[2px] border px-3 py-2 ${toneClass}`}>
+      <p className="font-mono text-[10px] uppercase tracking-wide opacity-80">
+        {label}:
+      </p>
+      <p className="font-mono text-xl font-bold leading-tight">{value}</p>
     </div>
   )
 }
@@ -271,7 +271,7 @@ function AddNodeModal({ onClose, onSubmit, submitting, error }) {
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-lg border border-bg-border bg-bg-surface p-5 shadow-2xl"
+        className="w-full max-w-md rounded-[4px] border border-bg-border bg-bg-surface p-5 shadow-2xl"
       >
         <h2 id="add-node-title" className="mb-4 font-mono text-base font-semibold text-text-primary">
           Aggiungi nodo
@@ -308,14 +308,14 @@ function AddNodeModal({ onClose, onSubmit, submitting, error }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-bg-border px-3 py-1.5 font-mono text-xs text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+            className="rounded-[2px] border border-bg-border px-3 py-1.5 font-mono text-xs text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
             disabled={submitting}
           >
             Annulla
           </button>
           <button
             type="submit"
-            className="rounded-md bg-accent px-3 py-1.5 font-mono text-xs font-semibold text-white hover:brightness-110 disabled:opacity-60"
+            className="rounded-[2px] bg-accent px-3 py-1.5 font-mono text-xs font-semibold text-white hover:brightness-110 disabled:opacity-60"
             disabled={submitting}
           >
             {submitting ? 'Salvataggio...' : 'Salva nodo'}
@@ -336,7 +336,7 @@ function Field({ label, value, onChange, type = 'text', ...rest }) {
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-bg-border bg-bg-base px-3 py-2 font-mono text-sm text-text-primary focus-visible:border-accent focus-visible:outline-none"
+        className="w-full rounded-[2px] border border-bg-border bg-bg-base px-3 py-2 font-mono text-sm text-text-primary focus-visible:border-accent focus-visible:outline-none"
         {...rest}
       />
     </label>
