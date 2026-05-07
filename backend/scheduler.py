@@ -9,7 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import delete, select
 
 from .database import SessionLocal
-from .models import Alert, MetricSnapshot, Node, utc_now
+from .models import Alert, MetricSnapshot, MonitorConfig, Node, utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,31 @@ class MetricScheduler:
 
         # In-memory state to detect "2 consecutive polls" condition.
         self._cpu_over_80_consecutive: dict[str, int] = {}
+        self._config_cache: MonitorConfig | None = None
+
+    async def _get_config(self) -> MonitorConfig:
+        # Cache config between polls to keep DB access cheap.
+        if self._config_cache is not None:
+            return self._config_cache
+        async with SessionLocal() as session:
+            config = await session.get(MonitorConfig, 1)
+            if config is None:
+                config = MonitorConfig(id=1)
+                session.add(config)
+                await session.commit()
+                await session.refresh(config)
+            self._config_cache = config
+            return config
+
+    async def refresh_config(self) -> None:
+        self._config_cache = None
+        config = await self._get_config()
+        if self._poll_interval_seconds != int(config.poll_interval_seconds):
+            self._poll_interval_seconds = int(config.poll_interval_seconds)
+            if self._scheduler.running:
+                self._scheduler.remove_all_jobs()
+                self._scheduler.add_job(self.poll_all_nodes, "interval", seconds=self._poll_interval_seconds)
+                logger.info("Scheduler interval updated to %ss", self._poll_interval_seconds)
 
     async def start(self) -> None:
         if self._client is not None:
@@ -63,6 +88,7 @@ class MetricScheduler:
             logger.warning("poll_all_nodes called before start(); skipping")
             return
 
+        config = await self._get_config()
         now = utc_now()
         async with SessionLocal() as session:
             nodes = (await session.execute(select(Node).where(Node.is_active.is_(True)))).scalars().all()
@@ -126,6 +152,7 @@ class MetricScheduler:
                     session=session,
                     node=node,
                     now=now,
+                    config=config,
                     cpu_percent=cpu_percent,
                     memory_percent=memory_percent,
                     disk_data=disk_data,
@@ -165,6 +192,7 @@ class MetricScheduler:
         session,
         node: Node,
         now: datetime,
+        config: MonitorConfig,
         cpu_percent: float,
         memory_percent: float,
         disk_data: list[dict[str, Any]],
@@ -172,21 +200,21 @@ class MetricScheduler:
         alerts: list[Alert] = []
 
         # CPU rules
-        if cpu_percent > 80.0:
+        if cpu_percent > config.cpu_warning:
             self._cpu_over_80_consecutive[node.id] = self._cpu_over_80_consecutive.get(node.id, 0) + 1
         else:
             self._cpu_over_80_consecutive[node.id] = 0
 
-        if cpu_percent > 95.0:
+        if cpu_percent > config.cpu_critical:
             maybe = await self._create_alert_if_not_duplicate(
                 session=session,
                 node=node,
                 now=now,
                 metric="cpu",
                 value=cpu_percent,
-                threshold=95.0,
+                threshold=config.cpu_critical,
                 severity="critical",
-                message=f"CPU at {cpu_percent:.1f}%, threshold: 95%",
+                message=f"CPU at {cpu_percent:.1f}%, threshold: {config.cpu_critical:.1f}%",
             )
             if maybe:
                 alerts.append(maybe)
@@ -197,37 +225,37 @@ class MetricScheduler:
                 now=now,
                 metric="cpu",
                 value=cpu_percent,
-                threshold=80.0,
+                threshold=config.cpu_warning,
                 severity="warning",
-                message=f"CPU at {cpu_percent:.1f}% for 2+ consecutive polls, threshold: 80%",
+                message=f"CPU at {cpu_percent:.1f}% for 2+ consecutive polls, threshold: {config.cpu_warning:.1f}%",
             )
             if maybe:
                 alerts.append(maybe)
 
         # Memory rules
-        if memory_percent > 95.0:
+        if memory_percent > config.memory_critical:
             maybe = await self._create_alert_if_not_duplicate(
                 session=session,
                 node=node,
                 now=now,
                 metric="memory",
                 value=memory_percent,
-                threshold=95.0,
+                threshold=config.memory_critical,
                 severity="critical",
-                message=f"Memory at {memory_percent:.1f}%, threshold: 95%",
+                message=f"Memory at {memory_percent:.1f}%, threshold: {config.memory_critical:.1f}%",
             )
             if maybe:
                 alerts.append(maybe)
-        elif memory_percent > 85.0:
+        elif memory_percent > config.memory_warning:
             maybe = await self._create_alert_if_not_duplicate(
                 session=session,
                 node=node,
                 now=now,
                 metric="memory",
                 value=memory_percent,
-                threshold=85.0,
+                threshold=config.memory_warning,
                 severity="warning",
-                message=f"Memory at {memory_percent:.1f}%, threshold: 85%",
+                message=f"Memory at {memory_percent:.1f}%, threshold: {config.memory_warning:.1f}%",
             )
             if maybe:
                 alerts.append(maybe)
@@ -237,29 +265,29 @@ class MetricScheduler:
             percent = float(disk.get("percent", 0.0) or 0.0)
             mountpoint = str(disk.get("mountpoint", "?") or "?")
 
-            if percent > 95.0:
+            if percent > config.disk_critical:
                 maybe = await self._create_alert_if_not_duplicate(
                     session=session,
                     node=node,
                     now=now,
                     metric="disk",
                     value=percent,
-                    threshold=95.0,
+                    threshold=config.disk_critical,
                     severity="critical",
-                    message=f"Disk {mountpoint} at {percent:.1f}%, threshold: 95%",
+                    message=f"Disk {mountpoint} at {percent:.1f}%, threshold: {config.disk_critical:.1f}%",
                 )
                 if maybe:
                     alerts.append(maybe)
-            elif percent > 85.0:
+            elif percent > config.disk_warning:
                 maybe = await self._create_alert_if_not_duplicate(
                     session=session,
                     node=node,
                     now=now,
                     metric="disk",
                     value=percent,
-                    threshold=85.0,
+                    threshold=config.disk_warning,
                     severity="warning",
-                    message=f"Disk {mountpoint} at {percent:.1f}%, threshold: 85%",
+                    message=f"Disk {mountpoint} at {percent:.1f}%, threshold: {config.disk_warning:.1f}%",
                 )
                 if maybe:
                     alerts.append(maybe)

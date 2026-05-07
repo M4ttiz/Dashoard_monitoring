@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import alerts, metrics, nodes
+from .api import alerts, config, metrics, nodes
 from .database import init_db
 from .scheduler import MetricScheduler
 
@@ -38,6 +38,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 scheduler = MetricScheduler(broadcast=manager.broadcast)
+config.set_refresh_scheduler_config(scheduler.refresh_config)
 
 
 @asynccontextmanager
@@ -63,6 +64,7 @@ app.add_middleware(
 app.include_router(nodes.router, prefix="/api")
 app.include_router(metrics.router, prefix="/api")
 app.include_router(alerts.router, prefix="/api")
+app.include_router(config.router, prefix="/api")
 
 
 @app.websocket("/ws")

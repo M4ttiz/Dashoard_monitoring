@@ -20,6 +20,7 @@ export const endpoints = {
   },
   alertRead: (id) => `/api/alerts/${id}/read`,
   alertReadAll: () => '/api/alerts/read-all',
+  config: () => '/api/config',
 }
 
 export async function getFleet() {
@@ -34,6 +35,11 @@ export async function createNode(payload) {
 
 export async function deleteNode(id) {
   await apiClient.delete(endpoints.node(id))
+}
+
+export async function updateNode(id, payload) {
+  const { data } = await apiClient.patch(endpoints.node(id), payload)
+  return data
 }
 
 export async function getMetricsHistory(id, range = '1h') {
@@ -63,4 +69,14 @@ export async function markAlertReadApi(id) {
 
 export async function markAllAlertsRead() {
   await apiClient.patch(endpoints.alertReadAll())
+}
+
+export async function getMonitorConfig() {
+  const { data } = await apiClient.get(endpoints.config())
+  return data
+}
+
+export async function updateMonitorConfig(payload) {
+  const { data } = await apiClient.patch(endpoints.config(), payload)
+  return data
 }

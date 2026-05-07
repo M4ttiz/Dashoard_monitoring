@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import FleetFilters from '../components/fleet/FleetFilters.jsx'
 import FleetStatusBar from '../components/fleet/FleetStatusBar.jsx'
@@ -82,6 +83,25 @@ export default function FleetOverview() {
       })
   }, [activeStatuses, enrichedNodes, search, sortBy])
 
+  const statusPieData = useMemo(
+    () => [
+      { name: 'OK', value: counts.ok, color: 'var(--color-status-ok)' },
+      { name: 'Warning', value: counts.warning, color: 'var(--color-status-warning)' },
+      { name: 'Critical', value: counts.critical, color: 'var(--color-status-critical)' },
+      { name: 'Down', value: counts.down, color: 'var(--color-status-unknown)' },
+    ].filter((x) => x.value > 0),
+    [counts],
+  )
+  const unreadCritical = alerts.filter((a) => !a.is_read && a.severity === 'critical').length
+  const unreadWarning = alerts.filter((a) => !a.is_read && a.severity !== 'critical').length
+  const alertPieData = useMemo(
+    () => [
+      { name: 'Critical', value: unreadCritical, color: 'var(--color-status-critical)' },
+      { name: 'Warning', value: unreadWarning, color: 'var(--color-status-warning)' },
+    ].filter((x) => x.value > 0),
+    [unreadCritical, unreadWarning],
+  )
+
   const toggleStatus = (status) => {
     setActiveStatuses((prev) => {
       const next = new Set(prev)
@@ -106,6 +126,21 @@ export default function FleetOverview() {
       </div>
 
       <FleetStatusBar counts={counts} total={nodes.length} />
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <PiePanel
+          title="Fleet health distribution"
+          subtitle="Panoramica stato nodi"
+          data={statusPieData}
+          emptyLabel="Nessun nodo disponibile"
+        />
+        <PiePanel
+          title="Open alerts severity"
+          subtitle="Alert non letti per severita'"
+          data={alertPieData}
+          emptyLabel="Nessun alert aperto"
+        />
+      </div>
 
       <FleetFilters
         search={search}
@@ -135,6 +170,33 @@ export default function FleetOverview() {
         />
       ) : null}
     </div>
+  )
+}
+
+function PiePanel({ title, subtitle, data, emptyLabel }) {
+  return (
+    <section className="rounded-lg border border-bg-border bg-bg-surface p-3">
+      <header className="mb-2">
+        <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary">{title}</h2>
+        <p className="text-[11px] text-text-secondary">{subtitle}</p>
+      </header>
+      <div className="h-40">
+        {data.length === 0 ? (
+          <div className="flex h-full items-center justify-center font-mono text-xs text-text-muted">{emptyLabel}</div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name) => [`${value}`, name]} />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </section>
   )
 }
 

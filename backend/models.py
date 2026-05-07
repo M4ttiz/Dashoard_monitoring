@@ -59,3 +59,22 @@ class Alert(Base):
     message: Mapped[str] = mapped_column(String(500), nullable=False)
 
     node: Mapped["Node"] = relationship(back_populates="alerts")
+
+
+class MonitorConfig(Base):
+    __tablename__ = "monitor_config"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    cpu_warning: Mapped[float] = mapped_column(Float, nullable=False, default=80.0)
+    cpu_critical: Mapped[float] = mapped_column(Float, nullable=False, default=95.0)
+    memory_warning: Mapped[float] = mapped_column(Float, nullable=False, default=85.0)
+    memory_critical: Mapped[float] = mapped_column(Float, nullable=False, default=95.0)
+    disk_warning: Mapped[float] = mapped_column(Float, nullable=False, default=85.0)
+    disk_critical: Mapped[float] = mapped_column(Float, nullable=False, default=95.0)
+    poll_interval_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=15)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+        onupdate=utc_now,
+    )

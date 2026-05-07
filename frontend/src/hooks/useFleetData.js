@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { createNode, deleteNode, getFleet } from '../api/client.js'
+import { createNode, deleteNode, getFleet, updateNode } from '../api/client.js'
 
 export const FLEET_QUERY_KEY = ['fleet']
 
@@ -27,6 +27,16 @@ export function useDeleteNode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteNode,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: FLEET_QUERY_KEY })
+    },
+  })
+}
+
+export function useUpdateNode() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }) => updateNode(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: FLEET_QUERY_KEY })
     },

@@ -6,7 +6,7 @@ import { useUnreadAlertCount } from '../../hooks/useAlerts.js'
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/alerts', label: 'Alerts', icon: Bell },
-  { to: '/config', label: 'Config', icon: Settings, disabled: true },
+  { to: '/config', label: 'Config', icon: Settings },
 ]
 
 export default function Sidebar({ open, onClose }) {
@@ -29,19 +29,7 @@ export default function Sidebar({ open, onClose }) {
         }`}
       >
         <nav className="flex flex-col gap-1 px-3 py-4">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end, disabled }) => {
-            if (disabled) {
-              return (
-                <span
-                  key={to}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-text-muted"
-                  title="In arrivo"
-                >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {label}
-                </span>
-              )
-            }
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => {
             return (
               <NavLink
                 key={to}

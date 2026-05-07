@@ -9,6 +9,7 @@ import FleetOverview from './pages/FleetOverview.jsx'
 
 const DeviceDetail = lazy(() => import('./pages/DeviceDetail.jsx'))
 const AlertCenter = lazy(() => import('./pages/AlertCenter.jsx'))
+const ConfigPage = lazy(() => import('./pages/ConfigPage.jsx'))
 
 function PageFallback() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/" element={<FleetOverview />} />
           <Route path="/devices/:id" element={<DeviceDetail />} />
           <Route path="/alerts" element={<AlertCenter />} />
+          <Route path="/config" element={<ConfigPage />} />
           {/* Backwards compat with prompt-10 routes */}
           <Route path="/nodes/:id" element={<LegacyNodeRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
