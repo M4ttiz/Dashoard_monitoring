@@ -1,82 +1,63 @@
-Sei un senior frontend developer specializzato in React, TypeScript, Tailwind CSS e visualizzazione dati.  
-Lavora sulla dashboard di monitoring attuale e implementa i seguenti miglioramenti, in ordine di priorità.
+Refactor the monitoring dashboard UI to match a new design. Keep all existing backend logic and WebSocket connections intact. Only change the frontend layout and components.
 
-### 1. Architettura e Stato Globale (Zustand)
-- Crea uno store Zustand (`useDashboardStore`) con questi slice:
-  - `metrics`: dati correnti dei server (cpu, ram, disk, rete)
-  - `historical`: storico ultimi 15 minuti
-  - `alerts`: array di alert attivi con gravità e timestamp
-  - `ui`: tema (light/dark), pannelli aperti, filtri attivi
-  - `fetchStatus`: loading, error, lastUpdated
-- Implementa un polling automatico configurabile (default ogni 10s) con React Query o un custom hook (`usePolling`).
-- Aggiungi logica di retry esponenziale in caso di errore di rete.
+---
 
-### 2. Componenti UI Atomici e Molecole
-- Crea un design system minimo con Tailwind:
-  - `Card` (con varianti: default, compact, alert)
-  - `Badge` (stati: ok, warning, critical, offline)
-  - `Sparkline`, `Gauge`, `TrendIndicator` (freccia up/down con percentuale)
-  - `Skeleton` per loading state di ogni tipo di grafico/tabella
-  - `EmptyState` con illustrazione e messaggio personalizzato
-  - `ErrorBoundary` con fallback UI e pulsante "Riprova"
-- Tutti i componenti devono essere accessibili (ARIA labels, ruoli, keyboard nav).
+SIDEBAR
+Replace the current sidebar with a structured nav divided into sections:
 
-### 3. Dashboard Layout e Responsività
-- Layout a griglia CSS Grid che si adatta: 1 colonna mobile, 2 tablet, 3-4 desktop.
-- Le card devono essere ridimensionabili e riordinabili tramite drag & drop (usa react-grid-layout o @dnd-kit).
-- Salva il layout nel localStorage per sessione utente.
-- Aggiungi un header fisso con:
-  - Nome dashboard e orario ultimo aggiornamento
-  - Indicatore di connessione (websocket/HTTP polling) con pallino verde/giallo/rosso
-  - Toggle tema chiaro/scuro
-  - Campanella notifiche con contatore alert attivi
+MONITORING: Overview, Hosts, Alerts, Inventory
+ANALYTICS: Metrics, Trends, Reports
+ADMINISTRATION: Settings, Integrations
 
-### 4. Grafici e Visualizzazioni (Recharts)
-- Ogni grafico deve gestire 4 stati: loading, empty, error, data.
-- LineChart per metriche storiche: usa colori distinti per ogni server, legenda interattiva, brush per zoom.
-- BarChart comparativo CPU/RAM tra server.
-- Heatmap calendario (o griglia) per uptime giornaliero.
-- Aggiungi tooltip personalizzati ricchi: oltre al valore, mostra variazione % rispetto al periodo precedente.
-- Usa `useMemo` e `React.memo` per evitare re-render inutili.
+Add a collapse toggle at the bottom. Do NOT create pages for: Services, Maps, Dashboards, Users, Roles (add them as disabled/placeholder nav items).
 
-### 5. Real-Time Updates (WebSocket o SSE)
-- Implementa un hook `useWebSocket` che si connette al backend e aggiorna lo store Zustand.
-- Mostra un indicatore di latenza (ms) nell'header.
-- Le notifiche di alert in tempo reale devono apparire come toast (usa react-hot-toast o Sonner).
+---
 
-### 6. Gestione Avanzata degli Alert
-- Tabella alert con colonne: server, metrica, valore, soglia, gravità, timestamp, azioni.
-- Filtri: per server, gravità, tipo metrica.
-- Opzione "acknowledge" e "snooze" per ogni alert, con mutazione ottimistica.
-- Storico alert con paginazione lato client (usa TanStack Table).
+TOPBAR
+Replace current header with:
+- Left: dropdown breadcrumb showing current page name (e.g. "Fleet Overview")
+- Center/Right: time range selector ("Last 5 minutes"), auto-refresh selector ("30s"), Share button
+- Remove the old alert counter and WS badge — move WS status to a small indicator in the corner
 
-### 7. Performance e Bundle
-- Lazy loading dei pannelli con `React.lazy` e `Suspense`.
-- Code splitting per pagina dettaglio server.
-- Ottimizza immagini e assets.
-- Aggiungi `why-did-you-render` in dev per scovare re-render.
+---
 
-### 8. Testing e Qualità del Codice
-- Scrivi test unitari per lo store Zustand e i custom hook (Vitest + Testing Library).
-- Test di integrazione per almeno un grafico: verifica rendering dati e stati.
-- Configura ESLint e Prettier con regole strict per TypeScript.
-- Aggiungi Storybook per documentare i componenti UI del design system.
+FLEET OVERVIEW PAGE (Overview)
+Replace the current layout with:
 
-### 9. Dettaglio Server (Pagina Secondaria)
-- Cliccando su una card server si apre una rotta `/server/:id` con:
-  - Dettaglio metriche in tempo reale (gauge circolari)
-  - Timeline eventi (alerts, restart, deploy)
-  - Log recenti in un terminale virtuale stilizzato
-  - Pulsanti azione: restart, refresh agent, export dati.
+1. STATUS PILLS ROW (top right): OK | Warning | Critical | Down — colored badge buttons
 
-### 10. Extra – Progressive Web App
-- Rendi la dashboard installabile (manifest.json, service worker con vite-plugin-pwa).
-- Cache delle risorse statiche e dati ultimo stato per visualizzazione offline.
-- Notifiche push per alert critici (previa autorizzazione).
+2. KPI CARDS ROW: Total Hosts, Up Hosts, Warning Hosts, Critical Hosts, Down Hosts, Total Services, Problems, Unchecked
+   Each card shows: label, big number, delta vs last 24h, percentage colored (green/yellow/red)
 
-Consegna alla fine:
-- La struttura aggiornata delle cartelle
-- Un esempio di ogni componente principale implementato
-- I file di configurazione aggiornati (vite.config, tailwind.config, tsconfig, package.json con nuovi pacchetti)
+3. THREE-COLUMN ROW:
+   - Host Status Distribution: donut chart with legend (OK/Warning/Down + count + %)
+   - Service Status Distribution: donut chart (OK/Warning/Critical/Unknown)
+   - Problems Over Time: area/line chart with time axis, three lines (Critical=red, Warning=yellow, Unknown=gray)
 
-L'obiettivo è una dashboard professionale, performante e mantenibile, pronta per produzione.S
+4. THREE-COLUMN ROW:
+   - Top Problem Hosts: table with Host, Status badge, Problems count, Last Change
+   - Host Problems by State: horizontal bar chart (Critical/Warning/Unknown)
+   - Service Problems by State: horizontal bar chart (Critical/Warning/Unknown)
+
+5. HOSTS TABLE at bottom:
+   Columns: Host (name + IP), Status badge, Services (colored dots x/x/x/x), CPU bar, Memory bar, Disk bar, Last Check, Problems badge, Actions (chart icon, list icon, bell icon, menu)
+   Add search input and pagination (10/page)
+
+---
+
+PAGES TO CREATE (minimal but functional):
+- Hosts: full table view of all hosts with filters
+- Alerts: table of alerts with severity filter
+- Inventory: simple host inventory list
+- Metrics: placeholder with "coming soon"
+- Trends: placeholder
+- Reports: placeholder
+- Settings: placeholder
+- Integrations: placeholder
+
+---
+
+STYLE
+Dark theme. Keep existing color tokens (green=OK, yellow=warning, red=critical, gray=down/unknown).
+Use the same font and spacing system already in the project.
+Component library: use whatever is already installed (do not add new dependencies).
