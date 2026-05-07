@@ -18,7 +18,7 @@ export default function Navbar({ onToggleSidebar }) {
   }, 0)
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-bg-border bg-bg-surface/95 px-4 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-bg-border bg-bg-surface/80 px-4 backdrop-blur-xl">
       <button
         type="button"
         onClick={onToggleSidebar}
@@ -29,10 +29,10 @@ export default function Navbar({ onToggleSidebar }) {
       </button>
 
       <div className="flex items-center gap-2">
-        <div className="flex size-7 items-center justify-center rounded-md bg-accent/15 text-accent ring-1 ring-accent/30">
+        <div className="flex size-7 items-center justify-center rounded-md bg-accent/15 text-accent ring-1 ring-accent/40 shadow-[0_0_0_1px_rgba(56,139,253,0.1),0_0_22px_-8px_rgba(56,139,253,0.7)]">
           <span className="font-mono text-xs font-bold">M</span>
         </div>
-        <span className="font-mono text-sm font-semibold tracking-wide text-text-primary">
+        <span className="font-mono text-sm font-semibold tracking-wide text-gradient-accent">
           MISAT Monitor
         </span>
       </div>

@@ -116,12 +116,24 @@ export default function FleetOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h1 className="font-mono text-xl font-semibold text-text-primary">Fleet Overview</h1>
-          <p className="text-xs text-text-secondary">
+      <div className="panel-premium rounded-xl p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">NOC Command Center</p>
+            <h1 className="mt-1 font-mono text-2xl font-semibold text-gradient-accent">Fleet Overview</h1>
+            <p className="mt-1 text-xs text-text-secondary">
+              Visione real-time della flotta con priorita' operative.
+            </p>
+            <p className="text-xs text-text-secondary">
             {nodes.length} nodi monitorati · drill-down sulla riga per il dettaglio
           </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <HeroPill label="OK" value={counts.ok} tone="ok" />
+            <HeroPill label="Warn" value={counts.warning} tone="warning" />
+            <HeroPill label="Critical" value={counts.critical} tone="critical" />
+            <HeroPill label="Unread" value={unreadCritical + unreadWarning} tone="info" />
+          </div>
         </div>
       </div>
 
@@ -175,18 +187,19 @@ export default function FleetOverview() {
 
 function PiePanel({ title, subtitle, data, emptyLabel }) {
   return (
-    <section className="rounded-lg border border-bg-border bg-bg-surface p-3">
+    <section className="panel-soft rounded-xl p-3">
       <header className="mb-2">
         <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-primary">{title}</h2>
         <p className="text-[11px] text-text-secondary">{subtitle}</p>
       </header>
+      <div className="grid items-center gap-2 sm:grid-cols-[1fr_auto]">
       <div className="h-40">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center font-mono text-xs text-text-muted">{emptyLabel}</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55} label>
+              <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={32} outerRadius={58} paddingAngle={2}>
                 {data.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
@@ -196,7 +209,34 @@ function PiePanel({ title, subtitle, data, emptyLabel }) {
           </ResponsiveContainer>
         )}
       </div>
+      <div className="grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-1">
+        {data.map((entry) => (
+          <div key={entry.name} className="inline-flex items-center gap-1.5 font-mono text-text-secondary">
+            <span className="size-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            {entry.name}: <span className="text-text-primary">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+      </div>
     </section>
+  )
+}
+
+function HeroPill({ label, value, tone = 'info' }) {
+  const toneClass =
+    tone === 'ok'
+      ? 'bg-status-ok/15 text-status-ok ring-status-ok/30'
+      : tone === 'warning'
+        ? 'bg-status-warning/15 text-status-warning ring-status-warning/30'
+        : tone === 'critical'
+          ? 'bg-status-critical/15 text-status-critical ring-status-critical/35'
+          : 'bg-status-info/15 text-status-info ring-status-info/35'
+
+  return (
+    <div className={`rounded-lg px-2.5 py-2 ring-1 ${toneClass}`}>
+      <p className="font-mono text-[10px] uppercase tracking-wide opacity-80">{label}</p>
+      <p className="font-mono text-lg font-semibold leading-tight">{value}</p>
+    </div>
   )
 }
 
