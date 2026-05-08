@@ -8,6 +8,7 @@ import { useWebSocket } from './hooks/useWebSocket.js'
 import FleetOverview from './pages/FleetOverview.jsx'
 import HostsPage from './pages/HostsPage.jsx'
 import InventoryPage from './pages/InventoryPage.jsx'
+import MapsPage from './pages/MapsPage.jsx'
 import MetricsPage from './pages/MetricsPage.jsx'
 import TrendsPage from './pages/TrendsPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
@@ -37,14 +38,12 @@ export default function App() {
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/devices/:id" element={<DeviceDetail />} />
           <Route path="/alerts" element={<AlertCenter />} />
+          <Route path="/maps" element={<MapsPage />} />
           <Route path="/metrics" element={<MetricsPage />} />
           <Route path="/trends" element={<TrendsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
-          <Route path="/config" element={<Navigate to="/settings" replace />} />
-          {/* Backwards compat with prompt-10 routes */}
-          <Route path="/nodes/:id" element={<LegacyNodeRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
@@ -53,7 +52,3 @@ export default function App() {
   )
 }
 
-function LegacyNodeRedirect() {
-  const id = window.location.pathname.split('/').pop()
-  return <Navigate to={`/devices/${id}`} replace />
-}

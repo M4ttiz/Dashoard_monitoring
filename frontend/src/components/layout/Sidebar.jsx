@@ -5,15 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   FileBarChart2,
-  Gauge,
   LayoutDashboard,
   Map,
-  Package,
   Plug,
   Server,
   Settings,
-  Shield,
-  Users,
+  TrendingUp,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
@@ -26,9 +23,7 @@ const NAV_SECTIONS = [
       { to: '/hosts', label: 'Hosts', icon: Server },
       { to: '/alerts', label: 'Alerts', icon: AlertTriangle },
       { to: '/inventory', label: 'Inventory', icon: Boxes },
-      { label: 'Services', icon: Gauge, disabled: true },
-      { label: 'Maps', icon: Map, disabled: true },
-      { label: 'Dashboards', icon: Package, disabled: true },
+      { to: '/maps', label: 'Maps', icon: Map },
     ],
   },
   {
@@ -36,7 +31,7 @@ const NAV_SECTIONS = [
     label: 'Analytics',
     items: [
       { to: '/metrics', label: 'Metrics', icon: BarChart3 },
-      { to: '/trends', label: 'Trends', icon: FileBarChart2 },
+      { to: '/trends', label: 'Trends', icon: TrendingUp },
       { to: '/reports', label: 'Reports', icon: FileBarChart2 },
     ],
   },
@@ -46,8 +41,6 @@ const NAV_SECTIONS = [
     items: [
       { to: '/settings', label: 'Settings', icon: Settings },
       { to: '/integrations', label: 'Integrations', icon: Plug },
-      { label: 'Users', icon: Users, disabled: true },
-      { label: 'Roles', icon: Shield, disabled: true },
     ],
   },
 ]
@@ -79,22 +72,9 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }) 
                   {section.label}
                 </p>
               ) : null}
-              {section.items.map(({ to, label, icon: Icon, end, disabled }) => {
+              {section.items.map(({ to, label, icon: Icon, end }) => {
                 const commonClasses =
                   'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition'
-                if (disabled) {
-                  return (
-                    <span
-                      key={`${section.id}-${label}`}
-                      aria-disabled="true"
-                      className={`${commonClasses} cursor-not-allowed text-text-muted/60`}
-                      title={`${label} (coming soon)`}
-                    >
-                      <Icon className="size-4 shrink-0" aria-hidden="true" />
-                      {!collapsed ? <span className="flex-1">{label}</span> : null}
-                    </span>
-                  )
-                }
                 return (
                   <NavLink
                     key={to}
