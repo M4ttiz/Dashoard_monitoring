@@ -1,5 +1,3 @@
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
-
 import {
   formatGB,
   formatPercent,
@@ -8,28 +6,47 @@ import {
 import { statusFromValue } from '../../utils/thresholds.js'
 
 const CARD_TONE = {
-  ok: 'border-status-ok/30 bg-bg-surface',
-  warning: 'border-status-warning/40 bg-status-warning/5',
-  critical: 'border-status-critical/50 bg-status-critical/10 shadow-[0_0_12px_-4px_rgba(248,81,73,0.4)]',
-  unknown: 'border-bg-border bg-bg-surface',
+  ok: 'border-l-status-ok bg-bg-surface',
+  warning: 'border-l-status-warning bg-bg-surface',
+  critical: 'border-l-status-critical bg-status-critical/4',
+  unknown: 'border-l-bg-border bg-bg-surface',
 }
 
 function TrendIcon({ delta }) {
   if (delta == null || !Number.isFinite(delta)) {
-    return <Minus className="size-3" aria-hidden="true" />
+    return (
+      <span className="font-mono text-[10px] text-text-muted" aria-hidden="true">
+        ─
+      </span>
+    )
   }
-  if (delta > 0.5) return <ArrowUp className="size-3 text-status-warning" aria-hidden="true" />
-  if (delta < -0.5) return <ArrowDown className="size-3 text-status-ok" aria-hidden="true" />
-  return <Minus className="size-3 text-text-muted" aria-hidden="true" />
+  if (delta > 0.5)
+    return (
+      <span className="font-mono text-[10px] text-status-warning" aria-hidden="true">
+        ▲
+      </span>
+    )
+  if (delta < -0.5)
+    return (
+      <span className="font-mono text-[10px] text-status-ok" aria-hidden="true">
+        ▼
+      </span>
+    )
+
+  return (
+    <span className="font-mono text-[10px] text-text-muted" aria-hidden="true">
+      ─
+    </span>
+  )
 }
 
 function KPICard({ label, value, sub, status = 'ok', trendDelta }) {
   const tone = CARD_TONE[status] || CARD_TONE.unknown
   return (
-    <div className={`rounded-lg border p-4 ${tone}`}>
-      <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">{label}</p>
-      <p className="mt-1 font-mono text-2xl font-semibold text-text-primary">{value}</p>
-      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-text-secondary">
+    <div className={`rounded-[4px] border border-bg-border border-l-4 p-4 ${tone}`}>
+      <p className="font-sans text-[10px] uppercase tracking-wider text-text-muted">{label}</p>
+      <p className="mt-1 font-mono text-3xl font-bold text-text-data">{value}</p>
+      <div className="mt-2 flex items-center gap-2 font-sans text-[11px] text-text-secondary">
         <TrendIcon delta={trendDelta} />
         <span>{sub}</span>
       </div>

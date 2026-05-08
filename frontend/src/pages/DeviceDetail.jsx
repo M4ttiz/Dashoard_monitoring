@@ -77,7 +77,7 @@ export default function DeviceDetail() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <DeviceHeader
         node={node}
         status={status}
@@ -89,7 +89,7 @@ export default function DeviceDetail() {
 
       <div className="flex items-center justify-between gap-3">
         <RangeSelector value={range} onChange={setRange} />
-        <span className="font-mono text-[11px] text-text-muted">
+        <span className="font-sans text-xs text-text-muted">
           {mergedHistory.length} punti · range {range}
         </span>
       </div>
@@ -107,7 +107,7 @@ export default function DeviceDetail() {
         title="Memory Usage (%)"
         data={mergedHistory}
         dataKey="memory_percent"
-        colors={['#3fb950']}
+        colors={['var(--color-status-ok)']}
         threshold={85}
         loading={historyLoading}
         height={220}
